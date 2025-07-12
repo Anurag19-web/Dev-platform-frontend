@@ -11,7 +11,6 @@ This platform allows users to sign up, create a profile, showcase skills and exp
 - ⚡ Vite
 - 💨 Tailwind CSS
 - 🎞️ Framer Motion
-- 🌐 Axios
 - 🌍 Express + MongoDB backend (connected at: `https://dev-platform-backend.onrender.com`)
 
 ---
