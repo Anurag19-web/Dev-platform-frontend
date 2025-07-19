@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchBlogs } from "../store/store";
 import { title } from "framer-motion/client";
+import { NavLink } from "react-router-dom";
 
 export const CommonPage = () => {
   const [loading, setLoading] = useState(true);
@@ -40,9 +41,11 @@ export const CommonPage = () => {
       <header className="bg-[#1f2937] shadow-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
           <h1 className="text-3xl font-bold text-white">🚀 Dev-Platform</h1>
+          <NavLink to="/signup">
           <button className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-6 py-2 rounded-full font-semibold hover:scale-105 transition duration-300">
             Sign Up
           </button>
+          </NavLink>
         </div>
       </header>
 
@@ -75,12 +78,14 @@ export const CommonPage = () => {
             transition={{ delay: 1, duration: 1 }}
             className="mt-8 text-center py-2 rounded-full"
           >
+            <NavLink to="/home">
             <button
               className="bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500 px-14 py-5 text-white text-3xl md:text-2xl
                rounded-full font-bold shadow-xl tracking-wide hover:shadow-2xl transition-all duration-300"
             >
               🚀 Explore Website
             </button>
+            </NavLink>
           </motion.div>
         </section>
 
