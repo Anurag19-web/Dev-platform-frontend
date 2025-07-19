@@ -1,12 +1,25 @@
-# React + Vite
+# 🚀 Dev Platform Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern and responsive frontend for the **Dev Platform**, built with React, Tailwind CSS, Vite, and Framer Motion.  
+This platform allows users to sign up, create a profile, showcase skills and experience, follow other developers, and share blog posts.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 📦 Tech Stack
 
-## Expanding the ESLint configuration
+- ⚛️ React.js
+- ⚡ Vite
+- 💨 Tailwind CSS
+- 🎞️ Framer Motion
+- 🌍 Express + MongoDB backend (connected at: `https://dev-platform-backend.onrender.com`)
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
+
+## 🛠️ Features
+
+- User signup & login
+- Create and edit user profiles
+- Add skills and experience
+- View other users’ profiles
+- Follow/unfollow other users
+- Blog listing and details view
