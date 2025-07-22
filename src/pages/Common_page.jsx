@@ -2,13 +2,12 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchBlogs } from "../store/store";
-import { title } from "framer-motion/client";
 import { NavLink } from "react-router-dom";
 
 export const CommonPage = () => {
   const [loading, setLoading] = useState(true);
   const dispatch = useDispatch();
-  const { blogs } = useSelector((state) => state.blogs);
+  const  blogs = useSelector((state) => state.blogs.blogs);
 
   // Fetch blogs only if not already fetched
   useEffect(() => {

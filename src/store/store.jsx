@@ -13,13 +13,23 @@ const blogSlice = createSlice({
   name: "blogs",
   initialState: {
     blogs: [],
+    loading: false,
+    error: null,
   },
   reducers: {},
   extraReducers: (builder) => {
     builder
+      .addCase(fetchBlogs.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(fetchBlogs.fulfilled, (state, action) => {
         state.blogs = action.payload;
       })
+      .addCase(fetchBlogs.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      });
   },
 });
 
@@ -29,3 +39,8 @@ export const store = configureStore({
     blogs: blogSlice.reducer,
   },
 });
+
+// Selectors
+export const selectBlogs = (state) => state.blogs.blogs;
+export const selectLoading = (state) => state.blogs.loading;
+export const selectError = (state) => state.blogs.error;

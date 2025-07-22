@@ -5,6 +5,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 export const SignUpPage = () => {
 
   const navigate = useNavigate();
+  const [userId] = useState(() => generateCustomId());
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -45,7 +46,6 @@ export const SignUpPage = () => {
     e.preventDefault();
     setLoading(true);
     setMessage("");
-    const id = generateCustomId();
 
     try {
       const response = await fetch("https://dev-platform-backend.onrender.com/api/signup", {
@@ -54,7 +54,7 @@ export const SignUpPage = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          id: id,
+          userId,
           username: formData.username,
           email: formData.email,
           password: formData.password
@@ -68,8 +68,8 @@ export const SignUpPage = () => {
         setFormData({ username: "", email: "", password: "" });
         console.log(formData);
         navigate("/home")
-        localStorage.setItem("userId", JSON.stringify(id));
-        console.log("Saved userId:", id);    
+        localStorage.setItem("userId", JSON.stringify(userId));
+        console.log("Saved userId:", userId);    
       } else {
         setMessage(`❌ ${data.message || "Signup failed"}`);
       }
