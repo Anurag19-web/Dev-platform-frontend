@@ -1,42 +1,31 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchFollowNetwork, resetFollowNetworkStatus, selectFollowNetworkStatus } from "../slices/FollowListSlice";
 
 export const FollowList = () => {
-  const {id} = useParams();
-  const [followers, setFollowers] = useState([]);
-  const [following, setFollowing] = useState([]);
-  // const id = JSON.parse(localStorage.getItem("id"));
+  const { id } = useParams();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const followNetworkStatus = useSelector(selectFollowNetworkStatus);
 
-  useEffect(() => {
-    const controller = new AbortController();
+  const { followers, following, loading, error } = useSelector(
+    (state) => state.followNetwork
+  );
 
-    const fetchFollowNetwork = async () => {
-      try {
-        const res = await fetch(
-          `https://dev-platform-backend.onrender.com/api/users/${id}/network`,
-          { signal: controller.signal }
-        );
+useEffect(() => {
+  if (id && followNetworkStatus === "idle") {
+    dispatch(fetchFollowNetwork(id));
+    console.log("Fetched Data");
+  }
+}, [id, dispatch, followNetworkStatus]);
 
-        if (!res.ok) {
-          const errText = await res.text();
-          console.error("API Error:", res.status, errText);
-          return;
-        }
-
-        const data = await res.json();
-        setFollowers(data.followers || []);
-        setFollowing(data.following || []);
-      } catch (err) {
-        if (err.name === "AbortError") return;
-        console.error("Network error:", err);
-      }
-    };
-
-    if (id) fetchFollowNetwork();
-
-    return () => controller.abort();
-  }, [id]);
+useEffect(()=>{
+ if(followNetworkStatus === "succeeded" || followNetworkStatus === "failed"){
+  dispatch(resetFollowNetworkStatus())
+ }
+},[followNetworkStatus, dispatch])
 
   const fadeInUp = {
     hidden: { opacity: 0, y: 30 },
@@ -82,6 +71,7 @@ export const FollowList = () => {
                   animate="visible"
                   custom={i}
                   variants={fadeInUp}
+                  onClick={() => navigate(`/userprofilesdata/${user.userId}`)}
                 >
                   <img
                     src={`https://api.dicebear.com/7.x/thumbs/svg?seed=${user.username}`}
@@ -119,6 +109,7 @@ export const FollowList = () => {
                   animate="visible"
                   custom={i}
                   variants={fadeInUp}
+                  onClick={() => navigate(`/userprofilesdata/${user.userId}`)}
                 >
                   <img
                     src={`https://api.dicebear.com/7.x/thumbs/svg?seed=${user.username}`}

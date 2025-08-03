@@ -1,27 +1,40 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { FaSearch, FaUserCircle } from "react-icons/fa";
+import { FaSearch } from "react-icons/fa";
 import { NavLink, useNavigate } from "react-router-dom";
+import { fetchUsers, selectUsers, selectUsersLoading, selectUsersError, selectUsersStatus } from "../slices/usersSlice";
+import { useDispatch, useSelector } from "react-redux";
 
 export const HomePage = () => {
-  const [homeData, setHomeData] = useState([]);
-  const navigate = useNavigate();
+  const navigate = useNavigate()
+  const dispatch = useDispatch();
+  const homeData = useSelector(selectUsers);
+  const loading = useSelector(selectUsersLoading);
+  const error = useSelector(selectUsersError);
+  const usersStatus = useSelector(selectUsersStatus)
 
   useEffect(() => {
-    const handleHomePage = async () => {
-      try {
-        const res = await fetch("https://dev-platform-backend.onrender.com/api/users");
-        const data = await res.json();
-        setHomeData(data);
-        console.log(data);
-      } catch (error) {
-        console.log("Fetch error:", error);
-      }
-    };
-    handleHomePage();
-  }, []);
+    if(usersStatus === "idle"){
+    dispatch(fetchUsers());
+    }
+  }, [usersStatus, dispatch]);
 
-  const handleUserProfiles = (userId)=>{
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center text-2xl font-bold">
+        🚀 Loading Users...
+      </div>
+    );
+  }
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-red-400 text-xl">
+        ❌ Error: {error}
+      </div>
+    );
+  }
+
+  const handleUserProfiles = (userId) => {
     navigate(`/userprofilesdata/${userId}`)
   }
 
@@ -29,33 +42,33 @@ export const HomePage = () => {
     <div className="min-h-screen bg-gradient-to-br from-[#2e27ac] via-[#49265d] to-[#24355d] text-white">
       {/* Navbar */}
       <motion.nav
-  initial={{ y: -50, opacity: 0 }}
-  animate={{ y: 0, opacity: 1 }}
-  transition={{ duration: 0.6 }}
-  className="flex flex-col md:flex-row justify-between items-center px-4 py-4 shadow-md backdrop-blur-sm bg-white/10 gap-4"
->
-  {/* Logo */}
-  <h1 className="text-2xl font-bold tracking-wide">Dev Platform</h1>
+        initial={{ y: -50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6 }}
+        className="flex flex-col md:flex-row justify-between items-center px-4 py-4 shadow-md backdrop-blur-sm bg-white/10 gap-4"
+      >
+        {/* Logo */}
+        <h1 className="text-2xl font-bold tracking-wide">Dev Platform</h1>
 
-  {/* Search bar - full width on mobile, shrink on desktop */}
-  <div className="flex items-center bg-white/20 rounded-full px-3 py-1 w-full md:w-[300px]">
-    <FaSearch className="text-white/80 mr-2" />
-    <input
-      type="text"
-      placeholder="Search blogs or users"
-      className="bg-transparent outline-none w-full placeholder-white/70 text-white"
-    />
-  </div>
+        {/* Search bar - full width on mobile, shrink on desktop */}
+        <div className="flex items-center bg-white/20 rounded-full px-3 py-1 w-full md:w-[300px]">
+          <FaSearch className="text-white/80 mr-2" />
+          <input
+            type="text"
+            placeholder="Search blogs or users"
+            className="bg-transparent outline-none w-full placeholder-white/70 text-white"
+          />
+        </div>
 
-  {/* Profile Icon */}
-  <NavLink to="/userprofile">
-    <img
-      src={homeData.profilePicture || "user.png"}
-      alt="Profile"
-      className="w-10 h-10 rounded-full border-2 border-white"
-    />
-  </NavLink>
-</motion.nav>
+        {/* Profile Icon */}
+        <NavLink to="/userprofile">
+          <img
+            src={homeData.profilePicture || "user.png"}
+            alt="Profile"
+            className="w-10 h-10 rounded-full border-2 border-white"
+          />
+        </NavLink>
+      </motion.nav>
 
 
       {/* Main Content */}
@@ -93,7 +106,7 @@ export const HomePage = () => {
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              onClick={()=>handleUserProfiles(userId)}
+              onClick={() => handleUserProfiles(userId)}
               className="bg-white/10 p-6 rounded-2xl shadow-lg backdrop-blur-md border border-white/20 hover:scale-105 hover:shadow-2xl transition-transform duration-300"
             >
               <h3 className="text-2xl font-bold mb-2">{username}</h3>

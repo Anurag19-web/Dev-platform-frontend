@@ -1,31 +1,29 @@
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { fetchUserProfile, resetUserProfileStatus, selectUserProfile, selectUserProfileError, selectUserProfileLoading, selectUserProfileStatus } from "../slices/userProfileSlice";
+import { useDispatch, useSelector } from "react-redux";
 
 export const UserProfile = () => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [userProfile, setUserProfile] = useState(null);
-  const userId = JSON.parse(localStorage.getItem("userId"));
+  const userProfile = useSelector(selectUserProfile);
+  const loading = useSelector(selectUserProfileLoading);
+  const error = useSelector(selectUserProfileError);
+  const userProfileStatus = useSelector(selectUserProfileStatus);
+
+  useEffect(()=>{
+  if(userProfileStatus === "idle"){
+  dispatch(fetchUserProfile())
+  dispatch(resetUserProfileStatus());
+  }
+  },[userProfileStatus, dispatch]);
 
   useEffect(() => {
-    const handleProfile = async () => {
-      try {
-        const res = await fetch(`https://dev-platform-backend.onrender.com/api/users/${userId}`);
-        const data = await res.json();
-        if (data) {
-          setUserProfile(data);
-        }
-      } catch (error) {
-        console.error("Error fetching profile:", error);
-      }
-    };
-
-    if (userId) {
-      handleProfile();
-    } else {
-      navigate("/signup");
-    }
-  }, [userId, navigate]);
+  if (userProfileStatus === "succeeded" || userProfileStatus === "failed") {
+    dispatch(resetUserProfileStatus());
+  }
+}, [userProfileStatus, dispatch]);
 
   if (!userProfile) return <div className="text-white text-center mt-20">Loading profile...</div>;
 
