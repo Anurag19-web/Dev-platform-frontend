@@ -1,11 +1,9 @@
 // slices/userProfileSlice.jsx
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
-// Get userId from localStorage
-const userId = JSON.parse(localStorage.getItem("userId"));
-
 // Thunk to fetch user profile
 export const fetchUserProfile = createAsyncThunk("userProfile/fetch", async () => {
+  const userId = JSON.parse(localStorage.getItem("userId"));
   const res = await fetch(`https://dev-platform-backend.onrender.com/api/users/${userId}`);
   const data = await res.json();
   return data;
