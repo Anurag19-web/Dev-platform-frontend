@@ -31,11 +31,11 @@ export const LoginPage = () => {
 
       if (res.ok) {
         setMessage("✅ Login successful");
-        localStorage.setItem("userId", JSON.stringify(data.id));
+        localStorage.setItem("userId", JSON.stringify(data.userId));
         console.log("Logged in as:", data.username);
         navigate("/home");
       } else {
-        setMessage(`❌ ${data.message || "Login failed"}`);
+        setMessage(`${data.message || "Login failed"}`);
       }
     } catch (err) {
       console.error("Login Error:", err);
@@ -92,20 +92,34 @@ export const LoginPage = () => {
 
           {/* Login Button */}
           <motion.button
-            whileHover={{ scale: 1.05 }}
+            type="submit"
+            disabled={loading}
+            whileHover={{ scale: loading ? 1 : 1.05 }}
             transition={{ duration: 0.3 }}
-            className="w-full bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500 py-4 text-xl rounded-full font-bold shadow-lg hover:shadow-2xl transition-all"
+            className={`w-full py-4 text-xl rounded-full font-bold shadow-lg transition-all ${loading
+              ? "bg-gray-500 cursor-not-allowed"
+              : "bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500 hover:shadow-2xl"
+              }`}
           >
-            🔐 Login
+            {loading ? "Logging in..." : "🔐 Login"}
           </motion.button>
+
         </form>
+        {message && (
+          <p
+            className={`mt-4 text-center font-medium ${message.includes("✅") ? "text-green-400" : "text-red-400"
+              }`}
+          >
+            {message}
+          </p>
+        )}
 
         <p className="mt-6 text-center text-sm text-gray-400">
           Don't have an account?{" "}
           <NavLink to="/signup">
-          <span className="text-purple-300 underline cursor-pointer hover:text-white">
-            Sign Up
-          </span>
+            <span className="text-purple-300 underline cursor-pointer hover:text-white">
+              Sign Up
+            </span>
           </NavLink>
         </p>
       </motion.div>
