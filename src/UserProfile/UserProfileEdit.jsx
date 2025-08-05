@@ -93,7 +93,9 @@ export const UserProfileEdit = () => {
     navigate("/userprofile");
   };
 
-  if (!userEditProfile) return <div className="text-white text-center mt-20">Loading profile...</div>;
+  if (!userEditProfile) return <div className="min-h-screen bg-black text-white flex items-center justify-center text-2xl font-bold">
+        🚀 Loading Profile...
+      </div>
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#2e27ac] via-[#49265d] to-[#24355d] text-white px-4 py-10">

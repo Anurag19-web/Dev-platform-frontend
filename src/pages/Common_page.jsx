@@ -1,7 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
-import { NavLink } from "react-router-dom";
+import { FiMenu, FiSettings, FiLogOut } from "react-icons/fi";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   fetchBlogs,
   selectBlogs,
@@ -12,19 +13,29 @@ import {
 
 export const CommonPage = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const blogs = useSelector(selectBlogs);
   const loading = useSelector(selectBlogsLoading);
   const error = useSelector(selectBlogsError);
-  const blogsStatus = useSelector(selectBlogsStatus)
+  const blogsStatus = useSelector(selectBlogsStatus);
 
-  // Fetch blogs only once
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const handleLogout = () => {
+    localStorage.removeItem("userId");
+    navigate("/login");
+  };
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
   useEffect(() => {
-      if(blogsStatus === "idle"){
+    if (blogsStatus === "idle") {
       dispatch(fetchBlogs());
-      }
+    }
   }, [blogsStatus, dispatch]);
 
-  // Debugging - remove in production
   useEffect(() => {
     if (blogs.length > 0) {
       console.log("Fetched blogs:", blogs);
@@ -48,16 +59,69 @@ export const CommonPage = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#2e27ac] via-[#49265d] to-[#24355d] text-white font-sans">
+    <div className="relative min-h-screen flex flex-col bg-gradient-to-br from-[#2e27ac] via-[#49265d] to-[#24355d] text-white font-sans transition-all duration-300 overflow-x-hidden">
+
+      {/* Sidebar */}
+      <div
+        className={`fixed top-0 left-0 h-full w-18 bg-[#1f2937] shadow-xl z-[100] transform transition-transform duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+      >
+        <div className="flex flex-col items-center py-6 space-y-6 text-white text-2xl">
+          <button
+            onClick={() => {
+              navigate("/setting");
+              setSidebarOpen(false);
+            }}
+            className="hover:text-indigo-400"
+            title="Settings"
+          >
+            <FiSettings />
+          </button>
+          <button
+            onClick={handleLogout}
+            className="hover:text-indigo-400"
+            title="Logout"
+          >
+            <FiLogOut />
+          </button>
+        </div>
+      </div>
+
+      {/* Overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-red bg-opacity-40 z-[90]"
+          onClick={toggleSidebar}
+        />
+      )}
+
       {/* Header */}
-      <header className="bg-[#1f2937] shadow-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-white">🚀 Dev-Platform</h1>
-          <NavLink to="/signup">
-            <button className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-6 py-2 rounded-full font-semibold hover:scale-105 transition duration-300">
-              Sign Up
+      <header className="bg-[#1f2937] shadow-md sticky top-0 z-30 w-full">
+        <div className="flex items-center justify-between px-4 py-4">
+
+          {/* Sidebar Icon aligned to far left */}
+          <div className="flex items-center gap-4">
+            <button
+              onClick={toggleSidebar}
+              className="text-white text-3xl hover:text-indigo-400 transition"
+              aria-label="Toggle Sidebar"
+            >
+              <FiMenu />
             </button>
-          </NavLink>
+          </div>
+
+          {/* Centered content like title and signup button */}
+          <div className="flex-1 max-w-7xl mx-auto flex justify-between items-center px-4">
+            <h1 className="text-2xl sm:text-3xl font-bold text-white whitespace-nowrap">
+              🚀 Dev-Platform
+            </h1>
+            <NavLink to="/signup">
+              <button className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-6 py-2 rounded-full font-semibold hover:scale-105 transition duration-300">
+                Sign Up
+              </button>
+            </NavLink>
+          </div>
+
         </div>
       </header>
 
