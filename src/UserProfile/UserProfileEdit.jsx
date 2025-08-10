@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchUserProfile } from "../slices/userProfileSlice";
 import { updateProfile } from "../slices/updateProfileSlice";
+import { FiSettings } from "react-icons/fi";
+import { VoiceNavigator } from "../pages/VoiceNavigator";
 
 export const UserProfileEdit = () => {
   const dispatch = useDispatch();
@@ -16,6 +18,7 @@ export const UserProfileEdit = () => {
   const [userEditProfile, setuserEditProfile] = useState(null);
   const [newExperience, setNewExperience] = useState({ company: "", role: "", duration: "" });
   const [newSkill, setNewSkill] = useState("");
+  const { bgTheme } = useSelector((state) => state.settings);
 
   useEffect(() => {
     if (!userId) return;
@@ -94,17 +97,18 @@ export const UserProfileEdit = () => {
   };
 
   if (!userEditProfile) return <div className="min-h-screen bg-black text-white flex items-center justify-center text-2xl font-bold">
-        🚀 Loading Profile...
-      </div>
+    🚀 Loading Profile...
+  </div>
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#2e27ac] via-[#49265d] to-[#24355d] text-white px-4 py-10">
+    <div className="min-h-screen text-white px-4 py-10" style={{ background: bgTheme }}>
       <motion.div
         initial={{ opacity: 0, y: 60 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
         className="max-w-4xl mx-auto bg-[#1f2937] p-10 rounded-2xl shadow-2xl"
       >
+        
         <div className="flex justify-between mb-6">
           <button onClick={() => navigate("/userprofile")} className="bg-gray-600 px-4 py-2 rounded hover:bg-gray-700">
             ← Back
@@ -113,7 +117,6 @@ export const UserProfileEdit = () => {
             💾 Save & Go to Profile
           </button>
         </div>
-
         <div className="flex flex-col items-center">
           <img
             src={userEditProfile.profilePicture || `https://api.dicebear.com/7.x/thumbs/svg?seed=${userEditProfile.username}`}

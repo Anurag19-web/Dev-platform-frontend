@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { FaSearch } from "react-icons/fa";
 import { FiMenu, FiSettings, FiLogOut } from "react-icons/fi";
 import { NavLink, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import {
   fetchUsers,
   selectUsers,
@@ -10,7 +11,7 @@ import {
   selectUsersError,
   selectUsersStatus
 } from "../slices/usersSlice";
-import { useDispatch, useSelector } from "react-redux";
+import { VoiceNavigator } from "./VoiceNavigator";
 
 export const HomePage = () => {
   const navigate = useNavigate();
@@ -19,15 +20,13 @@ export const HomePage = () => {
   const loading = useSelector(selectUsersLoading);
   const error = useSelector(selectUsersError);
   const usersStatus = useSelector(selectUsersStatus);
-
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const { bgTheme } = useSelector((state) => state.settings);
+
   const handleLogout = () => {
     localStorage.removeItem("userId");
     navigate("/login");
-  };
-
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
   };
 
   useEffect(() => {
@@ -52,19 +51,17 @@ export const HomePage = () => {
     );
   }
 
-  const handleUserProfiles = (userId) => {
-    navigate(`/userprofilesdata/${userId}`);
-  };
-
   return (
-    <div className="relative min-h-screen flex bg-gradient-to-br from-[#2e27ac] via-[#49265d] to-[#24355d] text-white overflow-hidden">
+    <div className="relative min-h-screen flex 
+     text-white overflow-hidden" style={{ background: bgTheme }}>
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-full w-18 bg-gradient-to-br from-[#2e27ac] via-[#110a6f] to-[#19096c] text-white p-6 z-40 transform transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        className={`fixed top-0 left-0 h-full w-18 bg-[#1f2937] text-white p-6 z-40
+           transform transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
           }`}
       >
         <div className="flex flex-col items-center py-6 space-y-6 text-white text-2xl">
-          <button onClick={() => navigate("/home")} className=" px-4 rounded hover:text-indigo-400">
+          <button onClick={() => navigate("/")} className=" px-4 rounded hover:text-indigo-400">
             ←
           </button>
           <button
@@ -84,13 +81,14 @@ export const HomePage = () => {
           >
             <FiLogOut />
           </button>
+          <VoiceNavigator/>
         </div>
       </aside>
 
       {/* Overlay when sidebar is open */}
       {sidebarOpen && (
         <div
-          onClick={toggleSidebar}
+          onClick={() => setSidebarOpen(!sidebarOpen)}
           className="fixed inset-0 bg-red bg-opacity-50 z-30"
         ></div>
       )}
@@ -102,11 +100,11 @@ export const HomePage = () => {
           initial={{ y: -50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.6 }}
-          className="sticky top-0 z-20 flex flex-col md:flex-row justify-between items-center px-4 py-4 shadow-md backdrop-blur-sm bg-white/10 gap-4"
+          className="sticky top-0 z-20 flex flex-col md:flex-row justify-between items-center px-4 py-4 shadow-md bg-[#1f2937] gap-4"
         >
           <div className="flex items-center gap-4 w-full md:w-auto">
             <button
-              onClick={toggleSidebar}
+              onClick={() => setSidebarOpen(!sidebarOpen)}
               className="text-white text-2xl hover:text-indigo-400 transition"
             >
               <FiMenu />
@@ -160,7 +158,8 @@ export const HomePage = () => {
               github,
               linkedin,
               following,
-              followers
+              followers,
+              profilePicture,
             } = user;
 
             return (
@@ -169,9 +168,14 @@ export const HomePage = () => {
                 initial={{ opacity: 0, y: 40 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                onClick={() => handleUserProfiles(userId)}
+                onClick={() => navigate(`/userprofilesdata/${userId}`)}
                 className="bg-white/10 p-6 rounded-2xl shadow-lg backdrop-blur-md border border-white/20 hover:scale-105 hover:shadow-2xl transition-transform duration-300"
               >
+                <img
+                  src={profilePicture || "user.png"}
+                  alt="Profile"
+                  className="w-10 h-10 rounded-full border-2 border-white"
+                />
                 <h3 className="text-2xl font-bold mb-2">{username}</h3>
                 <p className="text-white/70 text-sm mb-2">📧 {email}</p>
                 <p className="text-white/70 text-sm mb-2">📧 {userId}</p>

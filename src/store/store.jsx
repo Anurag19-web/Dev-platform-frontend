@@ -4,6 +4,7 @@ import blogReducer from "../slices/blogSlice.jsx"; // ✅
 import UserProfileReducer from "../slices/userProfileSlice.jsx";
 import  updateProfileReducer  from "../slices/updateProfileSlice.jsx";
 import followNetworkReducer from "../slices/FollowListSlice.jsx";
+import settingReducer from '../slices/SettingSlice';
 
 export const store = configureStore({
   reducer: {
@@ -12,5 +13,6 @@ export const store = configureStore({
     userProfile: UserProfileReducer,
     updateProfile: updateProfileReducer,
     followNetwork: followNetworkReducer,
+    settings: settingReducer,
   },
 });

@@ -22,7 +22,7 @@ const userProfileSlice = createSlice({
   initialState: {
     userProfile: {},
     userProfileStatus: "idle",
-    viewedProfile: {}, 
+    viewedProfile: {},
     viewedProfileStatus: "idle",
     loading: false,
     error: null,

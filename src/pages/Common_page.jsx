@@ -10,6 +10,7 @@ import {
   selectBlogsError,
   selectBlogsStatus,
 } from "../slices/blogSlice";
+import { VoiceNavigator } from "./VoiceNavigator";
 
 export const CommonPage = () => {
   const dispatch = useDispatch();
@@ -18,8 +19,9 @@ export const CommonPage = () => {
   const loading = useSelector(selectBlogsLoading);
   const error = useSelector(selectBlogsError);
   const blogsStatus = useSelector(selectBlogsStatus);
-
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const { bgTheme } = useSelector((state) => state.settings);
 
   const handleLogout = () => {
     localStorage.removeItem("userId");
@@ -59,11 +61,14 @@ export const CommonPage = () => {
   }
 
   return (
-    <div className="relative min-h-screen flex flex-col bg-gradient-to-br from-[#2e27ac] via-[#49265d] to-[#24355d] text-white font-sans transition-all duration-300 overflow-x-hidden">
-
+   <div
+    className="relative min-h-screen flex flex-col text-white font-sans transition-all duration-300 overflow-x-hidden"
+    style={{ background: bgTheme }}
+  >
       {/* Sidebar */}
       <div
-        className={`fixed top-0 left-0 h-full w-18 bg-[#1f2937] shadow-xl z-[100] transform transition-transform duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        className={`fixed top-0 left-0 h-full w-18 bg-[#1f2937] shadow-xl z-[100] transform transition-transform duration-300
+           ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
           }`}
       >
         <div className="flex flex-col items-center py-6 space-y-6 text-white text-2xl">
@@ -84,6 +89,7 @@ export const CommonPage = () => {
           >
             <FiLogOut />
           </button>
+          <VoiceNavigator/>
         </div>
       </div>
 

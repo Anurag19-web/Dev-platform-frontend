@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { NavLink, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 export const SignUpPage = () => {
 
@@ -14,6 +15,7 @@ export const SignUpPage = () => {
   
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const { bgTheme } = useSelector((state) => state.settings);
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -82,8 +84,7 @@ export const SignUpPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#2e27ac] via-[#49265d]
-     to-[#24355d] px-4 py-5 text-white font-sans">
+    <div className="min-h-screen flex items-center justify-center  px-4 py-5 text-white font-sans" style={{ background: bgTheme}}>
       <motion.div
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}

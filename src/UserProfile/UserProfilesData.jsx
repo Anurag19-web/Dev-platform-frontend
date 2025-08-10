@@ -4,6 +4,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { fetchProfileById, selectUserProfile, selectViewedProfile } from "../slices/userProfileSlice";
 import { fetchFollowNetwork, toggleFollow } from "../slices/FollowListSlice";
+import { FiSettings } from "react-icons/fi";
+import { VoiceNavigator } from "../pages/VoiceNavigator";
 
 export const UserProfilesData = () => {
   const navigate = useNavigate();
@@ -12,8 +14,8 @@ export const UserProfilesData = () => {
   const userProfilesData = useSelector(selectUserProfile);
   const viewedProfile = useSelector(selectViewedProfile);
   const userId = useMemo(() => JSON.parse(localStorage.getItem("userId")), []);
-
   const [isFollowing, setIsFollowing] = useState(false);
+  const { bgTheme } = useSelector((state) => state.settings);
 
   useEffect(() => {
     if (viewedProfile?.followers?.includes(userId)) {
@@ -41,22 +43,34 @@ export const UserProfilesData = () => {
     }
   };
 
-  const handleNavigation = (id) => {
-    navigate(`/followlist/${id}`);
-  };
-
   if (!userProfilesData) {
     return <div className="text-white text-center mt-20">Loading profile...</div>;
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#2e27ac] via-[#49265d] to-[#24355d] text-white px-4 py-10 font-sans">
+    <div className="min-h-screen text-white px-4 py-10 font-sans" style={{ background: bgTheme }}>
       <motion.div
         initial={{ opacity: 0, y: 60 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
         className="max-w-4xl mx-auto bg-[#1f2937] bg-opacity-90 p-10 rounded-2xl shadow-2xl relative"
       >
+        <button
+          onClick={() => navigate("/home")}
+          className="bg-gray-700/70 px-4 py-2 rounded-lg hover:bg-gray-600 transition shadow-md"
+        >
+          ← Back
+        </button>
+        <button
+          onClick={() => navigate("/setting")}
+          className="p-3 rounded-full bg-gray-700/70 hover:bg-indigo-600 transition shadow-lg absolute right-10"
+          title="Settings"
+        >
+          <FiSettings size={20} />
+        </button>
+        <div className="absolute right-10 w-10 mt-3">
+                  <VoiceNavigator />
+                </div>
         <div className="flex flex-col items-center">
           <img
             src={userProfilesData.profilePicture || "https://api.dicebear.com/7.x/thumbs/svg?seed="}
@@ -67,14 +81,13 @@ export const UserProfilesData = () => {
           <p className="text-gray-300 text-sm mt-1">{viewedProfile.email}</p>
           <button
             onClick={handleToggleFollow}
-            className={`h-10 w-30 mt-5 rounded-lg text-sm shadow-lg transition ${
-              isFollowing ? "bg-red-600 hover:bg-red-700" : "bg-indigo-600 hover:bg-indigo-700"
-            } text-white`}
+            className={`h-10 w-30 mt-5 rounded-lg text-sm shadow-lg transition ${isFollowing ? "bg-red-600 hover:bg-red-700" : "bg-indigo-600 hover:bg-indigo-700"
+              } text-white`}
           >
             {isFollowing ? "Unfollow" : "Follow"}
           </button>
 
-          <div className="flex gap-6 mt-4" onClick={() => handleNavigation(id)}>
+          <div className="flex gap-6 mt-4" onClick={() => navigate(`/followlist/${id}`)}>
             <div className="text-center">
               <p className="text-xl font-bold">{viewedProfile.followers?.length || 0}</p>
               <p className="text-sm text-gray-400">Followers</p>
@@ -88,14 +101,14 @@ export const UserProfilesData = () => {
 
         <div className="mt-6 text-center">
           <h2 className="text-xl font-semibold text-indigo-400">📝 Bio</h2>
-          <p className="mt-2 text-gray-300">{userProfilesData.bio || "No bio added yet."}</p>
+          <p className="mt-2 text-gray-300">{viewedProfile.bio || "No bio added yet."}</p>
         </div>
 
         <div className="mt-6">
           <h2 className="text-xl font-semibold text-indigo-400">🛠️ Skills</h2>
           <div className="mt-2 flex flex-wrap gap-3">
-            {userProfilesData.skills?.length > 0 ? (
-              userProfilesData.skills.map((skill, idx) => (
+            {viewedProfile.skills?.length > 0 ? (
+              viewedProfile.skills.map((skill, idx) => (
                 <span key={idx} className="px-4 py-2 bg-purple-600 rounded-full text-sm font-medium shadow-md">
                   {skill}
                 </span>
@@ -109,8 +122,8 @@ export const UserProfilesData = () => {
         <div className="mt-6">
           <h2 className="text-xl font-semibold text-indigo-400">📌 Experience</h2>
           <ul className="mt-2 space-y-2">
-            {userProfilesData.experience?.length > 0 ? (
-              userProfilesData.experience.map((exp, idx) => (
+            {viewedProfile.experience?.length > 0 ? (
+              viewedProfile.experience.map((exp, idx) => (
                 <li key={idx} className="bg-[#2d3748] p-4 rounded-lg shadow">
                   <h3 className="text-lg font-bold">{exp.role}</h3>
                   <p className="text-gray-400">
@@ -127,18 +140,18 @@ export const UserProfilesData = () => {
         <div className="mt-6 text-center">
           <h2 className="text-xl font-semibold text-indigo-400">🔗 Connect</h2>
           <div className="flex justify-center gap-12 mt-4 flex-wrap">
-            {userProfilesData.github && (
+            {viewedProfile.github && (
               <div className="flex flex-col items-center text-white max-w-xs text-center">
                 <i className="fab fa-github text-3xl"></i>
                 <span className="mt-1 font-medium">GitHub</span>
-                <span className="text-xs break-all">{userProfilesData.github}</span>
+                <span className="text-xs break-all">{viewedProfile.github}</span>
               </div>
             )}
-            {userProfilesData.linkedin && (
+            {viewedProfile.linkedin && (
               <div className="flex flex-col items-center text-white max-w-xs text-center">
                 <i className="fab fa-linkedin text-3xl"></i>
                 <span className="mt-1 font-medium">LinkedIn</span>
-                <span className="text-xs break-all">{userProfilesData.linkedin}</span>
+                <span className="text-xs break-all">{viewedProfile.linkedin}</span>
               </div>
             )}
           </div>

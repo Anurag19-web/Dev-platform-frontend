@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
+import { useSelector } from "react-redux";
 import { NavLink, useNavigate } from "react-router-dom";
 
 export const LoginPage = () => {
@@ -7,6 +8,7 @@ export const LoginPage = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const { bgTheme } = useSelector((state) => state.settings);
 
   const handleChange = (e) => {
     setFormData(prev => ({
@@ -32,6 +34,7 @@ export const LoginPage = () => {
       if (res.ok) {
         setMessage("✅ Login successful");
         localStorage.setItem("userId", JSON.stringify(data.userId));
+        console.log(data.userId);
         console.log("Logged in as:", data.username);
         navigate("/home");
       } else {
@@ -46,7 +49,7 @@ export const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#2e27ac] via-[#49265d] to-[#24355d] px-4 py-10 text-white font-sans">
+    <div className="min-h-screen flex items-center justify-center px-4 py-10 text-white font-sans" style={{ background: bgTheme }}>
       <motion.div
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}

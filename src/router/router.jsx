@@ -9,6 +9,7 @@ import { UserProfileEdit } from "../UserProfile/UserProfileEdit";
 import { UserProfilesData } from "../UserProfile/UserProfilesData";
 import { FollowList } from "../pages/FollowList";
 import { Setting } from "../pages/setting_page";
+import { VoiceNavigator } from "../pages/VoiceNavigator";
 
 export const router_page = createBrowserRouter([
     {
@@ -61,6 +62,12 @@ export const router_page = createBrowserRouter([
         path:"/setting",
         element:<ProtectedRoot>
                 <Setting/>
+                </ProtectedRoot>
+    },
+    {
+        path:"/voice",
+        element:<ProtectedRoot>
+                <VoiceNavigator/>
                 </ProtectedRoot>
     },
 ]
