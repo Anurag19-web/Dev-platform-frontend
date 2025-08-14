@@ -10,6 +10,12 @@ import { UserProfilesData } from "../UserProfile/UserProfilesData";
 import { FollowList } from "../pages/FollowList";
 import { Setting } from "../pages/setting_page";
 import { VoiceNavigator } from "../pages/VoiceNavigator";
+import { CreatePost } from "../Posts/CreatePost";
+import { PostsList } from "../Posts/PostList";
+import { SearchPage } from "../pages/searchPage";
+import { Likes } from "../Posts/Likes";
+import UploadImage from "../pages/test.jsx";
+import { PostCard } from "../Posts/PostCard.jsx";
 
 export const router_page = createBrowserRouter([
     {
@@ -68,6 +74,42 @@ export const router_page = createBrowserRouter([
         path:"/voice",
         element:<ProtectedRoot>
                 <VoiceNavigator/>
+                </ProtectedRoot>
+    },
+    {
+        path:"/postcreate",
+        element:<ProtectedRoot>
+                <CreatePost/>
+                </ProtectedRoot>
+    },
+    {
+        path:"/postlist/:userId",
+        element:<ProtectedRoot>
+                <PostsList/>
+                </ProtectedRoot>
+    },
+    {
+        path:"/search",
+        element:<ProtectedRoot>
+                <SearchPage/>
+                </ProtectedRoot>
+    },
+    {
+        path:"/likes/:postId",
+        element:<ProtectedRoot>
+                <Likes/>
+                </ProtectedRoot>
+    },
+    {
+        path:"/postcard",
+        element:<ProtectedRoot>
+                <PostCard/>
+                </ProtectedRoot>
+    },
+    {
+        path:"test",
+        element:<ProtectedRoot>
+                <UploadImage/>
                 </ProtectedRoot>
     },
 ]

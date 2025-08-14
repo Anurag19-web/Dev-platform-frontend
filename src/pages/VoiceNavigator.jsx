@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { FaMicrophone, FaMicrophoneSlash } from "react-icons/fa";
 import { toggleNotifications } from "../slices/SettingSlice";
@@ -73,22 +74,26 @@ export const VoiceNavigator = () => {
             recognition.onerror = null;
         };
     }, [listening, navigate]);
+return (
+  <div className="voice-navigator flex flex-col items-center gap-1">
+    <motion.button
+      type="button"
+      onClick={() => setListening((prev) => !prev)}
+      whileHover={{ scale: 1.1 }}
+      whileTap={{ scale: 0.95 }}
+      className="p-2 rounded-full bg-gray-800 hover:bg-blue-600 text-gray-300 relative"
+    >
+      {listening ? (
+        <>
+          <FaMicrophoneSlash size={20} />
+          <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+        </>
+      ) : (
+        <FaMicrophone size={20} />
+      )}
+    </motion.button>
+  </div>
+);
 
-    return (
-        <div className="voice-navigator flex flex-col items-center p-2">
-            <button
-                onClick={() => setListening((prev) => !prev)}
-                aria-label={listening ? "Stop Listening" : "Start Listening"}
-                className={`p-2 rounded-full transition-colors duration-300 focus:outline-none
-          ${listening ? "bg-red-600 text-white" : "bg-green-600 text-white"}
-        `}
-                style={{ fontSize: "18px" }}
-            >
-                {listening ? <FaMicrophoneSlash /> : <FaMicrophone />}
-            </button>
-            <p className="mt-2 text-xs text-center text-gray-600 min-h-[1.5rem] dark:text-gray-300">
-                {message}
-            </p>
-        </div>
-    );
+
 };

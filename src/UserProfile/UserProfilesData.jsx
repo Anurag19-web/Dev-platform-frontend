@@ -16,6 +16,7 @@ export const UserProfilesData = () => {
   const userId = useMemo(() => JSON.parse(localStorage.getItem("userId")), []);
   const [isFollowing, setIsFollowing] = useState(false);
   const { bgTheme } = useSelector((state) => state.settings);
+  const userProfile = useSelector(selectUserProfile);
 
   useEffect(() => {
     if (viewedProfile?.followers?.includes(userId)) {
@@ -69,23 +70,38 @@ export const UserProfilesData = () => {
           <FiSettings size={20} />
         </button>
         <div className="absolute right-10 w-10 mt-3">
-                  <VoiceNavigator />
-                </div>
+          <VoiceNavigator />
+        </div>
+
+        {/* Profile Section */}
         <div className="flex flex-col items-center">
-          <img
-            src={userProfilesData.profilePicture || "https://api.dicebear.com/7.x/thumbs/svg?seed="}
-            alt="Profile"
-            className="w-32 h-32 rounded-full border-4 border-indigo-500 mb-4"
-          />
+          <div className="relative group">
+            <img
+              src={userProfile.profilePicture || "user.png"}
+              alt="Profile"
+              className="w-36 h-36 rounded-full border-4 border-indigo-500 shadow-lg object-cover"
+            />
+            {id === userId && (
+            <button
+              onClick={() => navigate("/usereditprofile")}
+              className="absolute bottom-0 right-0 px-3 py-1.5 text-sm bg-indigo-600 hover:bg-indigo-700 rounded-lg text-white shadow-lg transition opacity-90 group-hover:opacity-100"
+            >
+              ✏️ Edit
+            </button>
+            )}
+          </div>
+
           <h1 className="text-3xl font-bold">{viewedProfile.username}</h1>
           <p className="text-gray-300 text-sm mt-1">{viewedProfile.email}</p>
-          <button
-            onClick={handleToggleFollow}
-            className={`h-10 w-30 mt-5 rounded-lg text-sm shadow-lg transition ${isFollowing ? "bg-red-600 hover:bg-red-700" : "bg-indigo-600 hover:bg-indigo-700"
-              } text-white`}
-          >
-            {isFollowing ? "Unfollow" : "Follow"}
-          </button>
+          {id !== userId && (
+            <button
+              onClick={handleToggleFollow}
+              className={`h-10 w-30 mt-5 rounded-lg text-sm shadow-lg transition ${isFollowing ? "bg-red-600 hover:bg-red-700" : "bg-indigo-600 hover:bg-indigo-700"
+                } text-white`}
+            >
+              {isFollowing ? "Unfollow" : "Follow"}
+            </button>
+          )}
 
           <div className="flex gap-6 mt-4" onClick={() => navigate(`/followlist/${id}`)}>
             <div className="text-center">
@@ -97,9 +113,18 @@ export const UserProfilesData = () => {
               <p className="text-sm text-gray-400">Following</p>
             </div>
           </div>
+          <motion.button
+            onClick={() => navigate(`/postlist/${id}`)}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="mt-6 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition transform"
+          >
+            📄 See All Posts
+          </motion.button>
         </div>
-
+        
         <div className="mt-6 text-center">
+          
           <h2 className="text-xl font-semibold text-indigo-400">📝 Bio</h2>
           <p className="mt-2 text-gray-300">{viewedProfile.bio || "No bio added yet."}</p>
         </div>

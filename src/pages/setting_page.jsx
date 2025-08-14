@@ -59,7 +59,7 @@ export const Setting = () => {
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6 }}
       >
-        
+
         {/* Back Button */}
         <motion.button
           onClick={() => navigate(-1)}
@@ -145,17 +145,16 @@ export const Setting = () => {
         {/* Preferences */}
         <section>
           <h2 className="text-xl font-semibold mb-4">{t("Preferences")}</h2>
-          <VoiceNavigator/>
+          <VoiceNavigator />
           {/* Notifications */}
           <div className="flex items-center justify-between mb-4">
             <span>{t("Enable Notifications")}</span>
             <motion.button
               onClick={() => dispatch(toggleNotifications())}
-              className={`px-4 py-1 rounded-full font-medium transition-all duration-300 ${
-                notifications
+              className={`px-4 py-1 rounded-full font-medium transition-all duration-300 ${notifications
                   ? "bg-green-500 text-white"
                   : "bg-gray-300 text-black"
-              }`}
+                }`}
               whileHover={{ scale: 1.05 }}
             >
               {notifications ? t("On") : t("Off")}
@@ -187,7 +186,19 @@ export const Setting = () => {
             </select>
           </div>
         </section>
-        
+
+        {/* Add this inside your Preferences section */}
+        <section className="mt-6">
+          <h2 className="text-xl font-semibold mb-4">{t("Saved Posts")}</h2>
+          <motion.button
+            onClick={() => navigate("/postcard")} // navigate to saved posts page
+            className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-all duration-300"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            {t("Check Saved Posts")}
+          </motion.button>
+        </section>
 
         {/* Danger Zone */}
         <section>

@@ -18,19 +18,19 @@ export const UserProfile = () => {
   const userProfile = useSelector(selectUserProfile);
   const userProfileStatus = useSelector(selectUserProfileStatus);
   const { bgTheme } = useSelector((state) => state.settings);
+  const { updatedUser } = useSelector((state) => state.updateProfile);
 
   useEffect(() => {
     if (userProfileStatus === "idle") {
       dispatch(fetchUserProfile());
-      dispatch(resetUserProfileStatus());
     }
   }, [userProfileStatus, dispatch]);
 
   useEffect(() => {
-    if (userProfileStatus === "succeeded" || userProfileStatus === "failed") {
+    if (updatedUser) {
       dispatch(resetUserProfileStatus());
     }
-  }, [userProfileStatus, dispatch]);
+  }, [updatedUser, dispatch])
 
   if (!userProfile)
     return (
@@ -64,9 +64,12 @@ export const UserProfile = () => {
             <FiSettings size={20} />
           </button>
         </div>
-        <div className="absolute right-8 w-10 mt-[-25px]">
+        {/* Top Right Controls: Voice Navigator + See All Posts */}
+        <div className="absolute right-8 flex flex-col items-end gap-2 mt-[-15px]">
           <VoiceNavigator />
+
         </div>
+
         {/* Profile Section */}
         <div className="flex flex-col items-center">
           <div className="relative group">
@@ -103,6 +106,14 @@ export const UserProfile = () => {
               <p className="text-gray-400 text-sm">Following</p>
             </div>
           </div>
+          <motion.button
+            onClick={() => navigate(`/postlist/${userProfile.userId}`)}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="mt-6 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition transform"
+          >
+            📄 See All Posts
+          </motion.button>
         </div>
 
         {/* Bio */}
