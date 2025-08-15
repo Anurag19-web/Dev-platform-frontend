@@ -186,28 +186,41 @@ export const HomePage = () => {
   };
 
   const toggleSavePost = async (postId) => {
-    console.log("User ID:", userId);
-    console.log("Post ID:", postId);
+    if (!userId) return alert("Please log in to save posts.");
 
-    const url = `http://localhost:5000/api/save/${userId}/save/${postId}`;
-    console.log("Fetch URL:", url);
+    const alreadySaved = savedPosts.some(sp => sp._id === postId);
+    const post = posts.find(p => p._id === postId);
+
+    // Optimistic toggle: immediately update UI
+    setSavedPosts(prev =>
+      alreadySaved
+        ? prev.filter(sp => sp._id !== postId)
+        : [...prev, post]
+    );
 
     try {
-      const res = await fetch(url, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" }
-      });
-
-      const data = await res.json();
-      console.log("Saved Posts from Backend:", data.savedPosts);
+      const res = await fetch(
+        `https://dev-platform-backend.onrender.com/api/save/${userId}/save/${postId}`,
+        { method: "PATCH", headers: { "Content-Type": "application/json" } }
+      );
 
       if (!res.ok) throw new Error("Failed to toggle save");
-      setSavedPosts(data.savedPosts);
 
+      // backend returns only IDs, so we map them to post objects for UI
+      const data = await res.json();
+      const syncedPosts = data.savedPosts.map(id => posts.find(p => p._id === id)).filter(Boolean);
+      setSavedPosts(syncedPosts);
     } catch (err) {
       console.error(err);
+      // revert toggle if error
+      setSavedPosts(prev =>
+        alreadySaved
+          ? [...prev, post]
+          : prev.filter(sp => sp._id !== postId)
+      );
     }
   };
+
 
   return (
     <div
@@ -320,8 +333,14 @@ export const HomePage = () => {
             <p className="text-gray-400 text-center">No posts yet.</p>
           ) : (
             posts.map((post, index) => {
-              const likedByUser = post.likes.some((likeUser) => likeUser.userId === userId);
-              const isSaved = savedPosts.some((saved) => saved._id === post._id);
+              const likedByUser = Array.isArray(post.likes) && post.likes.some(
+                (likeUser) => likeUser.userId === userId
+              );
+
+              const isSaved = Array.isArray(savedPosts) && savedPosts.some(
+                (saved) => saved._id === post._id
+              );
+
               return (
                 <motion.div
                   key={post._id || index}
@@ -331,7 +350,7 @@ export const HomePage = () => {
                   transition={{ duration: 0.4, delay: index * 0.05 }}
                   whileHover={{ scale: 1.01 }}
                 >
-                  
+
                   {/* Header */}
                   <div className="flex items-center justify-between p-4">
                     {/* Left: Avatar + Username */}
@@ -355,8 +374,8 @@ export const HomePage = () => {
                           )
                         }
                         className={`flex items-center gap-1 transition px-3 py-1 rounded-full border ${readingPostId === post._id
-                            ? "text-red-400 border-red-400 hover:text-red-600 hover:border-red-600"
-                            : "text-gray-400 border-gray-400 hover:text-yellow-400 hover:border-yellow-400"
+                          ? "text-red-400 border-red-400 hover:text-red-600 hover:border-red-600"
+                          : "text-gray-400 border-gray-400 hover:text-yellow-400 hover:border-yellow-400"
                           }`}
                       >
                         {readingPostId === post._id ? "⏹ Stop" : "🔊 Read"}
@@ -369,7 +388,12 @@ export const HomePage = () => {
                         title="Save Post"
                       >
                         <FaSave size={16} />
-                        <span className="text-sm">{isSaved ? "Saved" : "Save"}</span>
+                        <span className="text-sm">
+                          {Array.isArray(savedPosts) && savedPosts.some(sp => sp._id === post._id)
+                            ? "Saved"
+                            : "Save"}
+                        </span>
+
                       </button>
                     </div>
                   </div>
@@ -430,23 +454,6 @@ export const HomePage = () => {
                         🔄 <span>Share</span>
                       </button>
                     </div>
-
-                    {/* Read aloud button */}
-                    {/* <button
-                      onClick={() =>
-                        readPost(
-                          post._id,
-                          `${post.user?.username || "Someone"} says: ${post.content}`
-                        )
-                      }
-                      className={`flex items-center gap-1 transition ${readingPostId === post._id
-                        ? "text-red-400 hover:text-red-600"
-                        : "text-gray-400 hover:text-yellow-400"
-                        }`}
-                    >
-                      {readingPostId === post._id ? "⏹ Stop" : "🔊 Read"}
-                    </button> */}
-
 
                     {/* Comment input */}
                     {commentBoxOpenFor === post._id && (

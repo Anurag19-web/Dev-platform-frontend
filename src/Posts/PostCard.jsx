@@ -169,16 +169,28 @@ export const PostCard = () => {
         alert("Post URL copied!");
     };
 
-    const removeSavedPost = async (postId) => {
-        try {
-            const res = await fetch(`${BASE_URL}/api/save/${currentUserId}/${postId}`, { method: "DELETE" });
-            const data = await res.json();
-            setSavedPosts(data.savedPosts);
-            setPosts((prev) => prev.filter((p) => p._id !== postId));
-        } catch (err) {
-            console.error(err);
-        }
-    };
+   const removeSavedPost = async (postId) => {
+    try {
+        // Optimistically remove post from UI
+        setPosts((prev) => prev.filter((p) => p._id !== postId));
+        setSavedPosts((prev) => prev.filter((p) => p._id !== postId));
+
+        // Call backend to remove saved post
+        const res = await fetch(`${BASE_URL}/api/save/${currentUserId}/${postId}`, {
+            method: "DELETE",
+        });
+
+        if (!res.ok) throw new Error("Failed to remove saved post");
+
+        const data = await res.json();
+        // Optional: sync savedPosts from backend
+        const syncedPosts = posts.filter((p) => data.savedPosts.includes(p._id));
+        setSavedPosts(syncedPosts);
+    } catch (err) {
+        console.error(err);
+    }
+};
+
 
     return (
         <div className="relative min-h-screen flex text-white overflow-hidden" style={{ background: bgTheme }}>

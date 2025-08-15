@@ -9,7 +9,7 @@ import { VoiceNavigator } from "../pages/VoiceNavigator";
 const BASE_URL = "https://dev-platform-backend.onrender.com";
 
 export const PostsList = () => {
-  const { userId: paramUserId } = useParams();
+  const { userId } = useParams();
   const navigate = useNavigate();
   const { bgTheme } = useSelector((state) => state.settings);
 
@@ -27,23 +27,26 @@ export const PostsList = () => {
   // Fetch posts
   const fetchPosts = async () => {
     try {
-      const res = await fetch(`${BASE_URL}/api/posts`);
+      const res = await fetch(`${BASE_URL}/api/posts/user/${userId}`);
       if (!res.ok) throw new Error("Failed to fetch posts");
       const data = await res.json();
+      console.log(data);
+      
 
-      const postsWithComments = (data.posts || []).map((post) => ({
-        ...post,
-        comments: (post.comments || []).map((comment) => ({
-          ...comment,
-          user:
-            comment.user ||
-            (comment.userId === currentUserId
-              ? { userId: currentUserId, username: currentUsername, profilePicture: currentProfilePicture }
-              : { username: "Unknown" }),
-        })),
-      }));
+       const postsWithUser = (data.posts || []).map((post) => ({
+      ...post,
+      user: {
+        userId: post.userId,
+        username: post.username || "Unknown",
+        profilePicture: post.profilePicture || "user.png",
+      },
+      comments: (post.comments || []).map((comment) => ({
+        ...comment,
+        user: comment.user || { username: "Unknown" },
+      })),
+    }));
 
-      setPosts(postsWithComments);
+    setPosts(postsWithUser);
     } catch (err) {
       console.error(err);
       setPosts([]);
