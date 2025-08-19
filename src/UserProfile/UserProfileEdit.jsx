@@ -108,7 +108,7 @@ export const UserProfileEdit = () => {
         transition={{ duration: 0.6 }}
         className="max-w-4xl mx-auto bg-[#1f2937] p-10 rounded-2xl shadow-2xl"
       >
-        
+
         <div className="flex justify-between mb-6">
           <button onClick={() => navigate("/userprofile")} className="bg-gray-600 px-4 py-2 rounded hover:bg-gray-700">
             ← Back
@@ -125,13 +125,42 @@ export const UserProfileEdit = () => {
           />
           <label className="cursor-pointer h-10 mt-1 bg-indigo-600 hover:bg-indigo-700 rounded-lg px-4 text-sm flex items-center">
             Select Picture
-            <input type="file" accept="image/*" hidden onChange={(e) => {
-              const file = e.target.files[0];
-              if (file) {
-                const url = URL.createObjectURL(file);
-                setuserEditProfile({ ...userEditProfile, profilePicture: url });
-              }
-            }} />
+            <input
+              type="file"
+              accept="image/*"
+              hidden
+              onChange={async (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                  // 1. Show preview instantly
+                  const localPreview = URL.createObjectURL(file);
+                  setuserEditProfile({ ...userEditProfile, profilePicture: localPreview });
+
+                  // 2. Upload to backend
+                  const formData = new FormData();
+                  formData.append("file", file);
+                  formData.append("userId", userId);
+
+                  try {
+                    const res = await fetch("https://dev-platform-backend.onrender.com/api/upload-profile", {
+                      method: "POST",
+                      body: formData,
+                    });
+
+                    const data = await res.json();
+                    console.log(data);
+
+                    if (data.url) {
+                      setuserEditProfile({ ...userEditProfile, profilePicture: data.url });
+                      dispatchUpdate({ profilePicture: data.url });
+                    }
+                  } catch (err) {
+                    console.error("Profile upload failed:", err);
+                  }
+                }
+              }}
+            />
+
           </label>
           <input
             className="mt-4 text-xl font-semibold bg-transparent border-b border-gray-500 text-center"

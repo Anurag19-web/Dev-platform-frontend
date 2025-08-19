@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { FaPlusCircle, FaSave, FaSearch, FaThumbsUp } from "react-icons/fa";
+import { FaPlusCircle, FaSave, FaSearch, FaThumbsUp, FaTrash, FaComment, FaTimes } from "react-icons/fa";
 import { FiMenu, FiSettings, FiLogOut } from "react-icons/fi";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
@@ -15,30 +15,45 @@ export const HomePage = () => {
   const [posts, setPosts] = useState([]);
   const [loadingPosts, setLoadingPosts] = useState(true);
 
-  // Track which post's comment box is open
+  // Comment box and inputs
   const [commentBoxOpenFor, setCommentBoxOpenFor] = useState(null);
-  // Track comment input values per post
   const [commentInputs, setCommentInputs] = useState({});
 
-  const { bgTheme } = useSelector((state) => state.settings);
+  // Read aloud state
   const [readingPostId, setReadingPostId] = useState(null);
+
+  // Edit mode states
+  const [editingPostId, setEditingPostId] = useState(null);
+  const [editContent, setEditContent] = useState("");
+  const [editImages, setEditImages] = useState([]);
+  const [imagesToRemove, setImagesToRemove] = useState([]);
+  const [newImages, setNewImages] = useState([]);
+
+  // Redux selector for theme
+  const { bgTheme } = useSelector((state) => state.settings);
+
+  // Saved posts context
   const { savedPosts, setSavedPosts } = useSavedPosts();
-
+  // User ID and defaults
   const userId = JSON.parse(localStorage.getItem("userId"));
+  const currentProfilePicture = "user.png"; // fallback profile picture
 
+  const BASE_URL = "https://dev-platform-backend.onrender.com";
+
+  // Handle logout
   const handleLogout = () => {
     localStorage.removeItem("userId");
     navigate("/login");
   };
 
-  // Fetch posts with user info on mount
+  // Fetch posts on mount
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const res = await fetch("https://dev-platform-backend.onrender.com/api/posts");
+        const res = await fetch(`${BASE_URL}/api/posts`);
         if (!res.ok) throw new Error("Failed to fetch posts");
 
-        let data = await res.json();
+        const data = await res.json();
         setPosts(data.posts || []);
       } catch (err) {
         console.error("Error fetching posts:", err);
@@ -50,7 +65,7 @@ export const HomePage = () => {
     fetchPosts();
   }, []);
 
-  // Like / Unlike handlers
+  // Toggle like
   const toggleLike = async (post) => {
     if (!userId) {
       alert("Please log in to like posts.");
@@ -83,115 +98,16 @@ export const HomePage = () => {
     }
   };
 
-  // Comment handlers
-  const handleCommentChange = (postId, text) => {
-    setCommentInputs((prev) => ({ ...prev, [postId]: text }));
-  };
-
-  const deleteComment = async (postId, commentId) => {
-    if (!userId) {
-      alert("Please log in to delete comments.");
-      return;
-    }
-
-    try {
-      const res =
-        await fetch(
-          `https://dev-platform-backend.onrender.com/api/posts/${postId}/comment/${commentId}?userId=${userId}`,
-          {
-            method: "DELETE",
-          }
-        );
-
-      if (!res.ok) throw new Error("Failed to delete comment");
-
-      const result = await res.json();
-      // Update state with updated comments
-      setPosts((prev) =>
-        prev.map((p) =>
-          p._id === postId ? { ...p, comments: result.comments } : p
-        )
-      );
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  // Updated readPost to toggle reading and stop
-  const readPost = (postId, text) => {
-    if (!("speechSynthesis" in window)) {
-      alert("Sorry, your browser does not support text-to-speech.");
-      return;
-    }
-
-    // If the same post is currently being read, stop it
-    if (readingPostId === postId) {
-      speechSynthesis.cancel();
-      setReadingPostId(null);
-      return;
-    }
-
-    // Stop any ongoing speech before starting a new one
-    speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "en-US";
-    utterance.rate = 1;
-    utterance.pitch = 1;
-    utterance.onend = () => setReadingPostId(null);
-    setReadingPostId(postId);
-    speechSynthesis.speak(utterance);
-  };
-
-  const submitComment = async (postId) => {
-    if (!userId) {
-      alert("Please log in to comment.");
-      return;
-    }
-    const text = commentInputs[postId];
-    if (!text || text.trim() === "") return;
-
-    const user = posts.find(p => p.user?.userId === userId)?.user;
-    const username = user?.username || "Unknown";
-
-    try {
-      const res = await fetch(
-        `https://dev-platform-backend.onrender.com/api/posts/${postId}/comment`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId, text, username }),
-        }
-      );
-
-      if (!res.ok) throw new Error("Failed to add comment");
-
-      const result = await res.json();
-
-      setPosts((prev) =>
-        prev.map((p) =>
-          p._id === postId ? { ...p, comments: result.comments } : p
-        )
-      );
-
-      setCommentInputs((prev) => ({ ...prev, [postId]: "" }));
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const handleShare = (post) => {
-    const postUrl = `${window.location.origin}/posts/${post._id}`;
-    navigator.clipboard.writeText(postUrl);
-    alert("Post URL copied to clipboard!");
-  };
-
+  // Toggle save post
   const toggleSavePost = async (postId) => {
-    if (!userId) return alert("Please log in to save posts.");
-
+    if (!userId) {
+      alert("Please log in to save posts.");
+      return;
+    }
     const alreadySaved = savedPosts.some(sp => sp._id === postId);
     const post = posts.find(p => p._id === postId);
 
-    // Optimistic toggle: immediately update UI
+    // Optimistic UI update
     setSavedPosts(prev =>
       alreadySaved
         ? prev.filter(sp => sp._id !== postId)
@@ -199,68 +115,226 @@ export const HomePage = () => {
     );
 
     try {
-      const res = await fetch(
-        `https://dev-platform-backend.onrender.com/api/save/${userId}/save/${postId}`,
-        { method: "PATCH", headers: { "Content-Type": "application/json" } }
-      );
+      const res = await fetch(`${BASE_URL}/api/save/${userId}/save/${postId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+      });
 
       if (!res.ok) throw new Error("Failed to toggle save");
 
-      // backend returns only IDs, so we map them to post objects for UI
       const data = await res.json();
       const syncedPosts = data.savedPosts.map(id => posts.find(p => p._id === id)).filter(Boolean);
       setSavedPosts(syncedPosts);
     } catch (err) {
       console.error(err);
-      // revert toggle if error
+      // Rollback on error
       setSavedPosts(prev =>
-        alreadySaved
-          ? [...prev, post]
-          : prev.filter(sp => sp._id !== postId)
+        alreadySaved ? [...prev, post] : prev.filter(sp => sp._id !== postId)
       );
     }
   };
 
+  const handleEdit = (post) => {
+    setEditingPostId(post._id);
+    setEditContent(post.content);
+    // Initialize editImages with current post images (assuming post.images)
+    setEditImages(post.images || []);
+    setImagesToRemove([]);
+  };
+
+  const handleDelete = async (postId) => {
+    try {
+      const res = await fetch(`${BASE_URL}/api/posts/${postId}?userId=${userId}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (data.message === "Post deleted successfully") {
+        setPosts((prev) => prev.filter((p) => p._id !== postId));
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const saveEdit = async (postId) => {
+    try {
+      let body;
+      let headers;
+      if (newImages.length > 0) {
+        body = new FormData();
+        body.append("userId", userId);
+        body.append("content", editContent);
+        body.append("removeImages", JSON.stringify(imagesToRemove));
+        newImages.forEach(file => body.append("files", file));
+        headers = {}; // Let browser set Content-Type (multipart)
+      } else {
+        body = JSON.stringify({
+          userId,
+          content: editContent,
+          removeImages: imagesToRemove
+        });
+        headers = { "Content-Type": "application/json" };
+      }
+
+      const res = await fetch(`${BASE_URL}/api/posts/${postId}`, {
+        method: "PUT",
+        headers,
+        body
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setPosts((prev) =>
+          prev.map((p) => (p._id === postId ? { ...p, ...data.post } : p))
+        );
+        setEditingPostId(null);
+        setEditContent("");
+        setEditImages([]);
+        setImagesToRemove([]);
+        setNewImages([]);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleCommentChange = (postId, text) => {
+    setCommentInputs((prev) => ({ ...prev, [postId]: text }));
+  };
+
+  const submitComment = async (postId) => {
+    if (!userId) return;
+    const text = commentInputs[postId];
+    const username = posts?.user?.username || "Unknown";
+    if (!text || text.trim() === "") return;
+    try {
+      const res = await fetch(`${BASE_URL}/api/posts/${postId}/comment`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: userId, text, username }),
+      });
+      if (!res.ok) return;
+      const result = await res.json();
+      setPosts((prev) =>
+        prev.map((p) =>
+          p._id === postId
+            ? {
+              ...p,
+              comments: (result.comments || []).map((comment) => ({
+                ...comment,
+                user:
+                  comment.user ||
+                  (comment.userId === userId
+                    ? { userId: userId, username, profilePicture: currentProfilePicture }
+                    : { username: "Unknown" }),
+              })),
+            }
+            : p
+        )
+      );
+      setCommentInputs((prev) => ({ ...prev, [postId]: "" }));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const deleteComment = async (postId, commentId) => {
+    try {
+      const res = await fetch(`${BASE_URL}/api/posts/${postId}/comment/${commentId}?userId=${userId}`, {
+        method: "DELETE",
+      });
+      const result = await res.json();
+      setPosts((prev) =>
+        prev.map((p) =>
+          p._id === postId
+            ? {
+              ...p,
+              comments: (result.comments || []).map((comment) => ({
+                ...comment,
+                user:
+                  comment.user ||
+                  (comment.userId === userId
+                    ? { userId: userId, username: currentUsername, profilePicture: currentProfilePicture }
+                    : { username: "Unknown" }),
+              })),
+            }
+            : p
+        )
+      );
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+const readPost = (postId, text) => {
+  if (!("speechSynthesis" in window)) {
+    alert("Text-to-speech not supported.");
+    return;
+  }
+
+  if (readingPostId === postId) {
+    speechSynthesis.cancel();
+    setReadingPostId(null);
+    return;
+  }
+
+  speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
+
+  // Detect script
+  const isHindi = /[\u0900-\u097F]/.test(text);
+  const isGujarati = /[\u0A80-\u0AFF]/.test(text);
+
+  // Pick a voice dynamically
+  const voices = speechSynthesis.getVoices();
+
+  if (isGujarati) {
+    utterance.lang = "gu-IN";
+    // Try to find a Gujarati voice
+    const guVoice = voices.find(v => v.lang.toLowerCase().includes("gu"));
+    if (guVoice) utterance.voice = guVoice;
+    else {
+      // fallback to Hindi if Gujarati voice unavailable
+      utterance.lang = "hi-IN";
+    }
+  } else if (isHindi) {
+    utterance.lang = "hi-IN";
+  } else {
+    utterance.lang = "en-US";
+  }
+
+  utterance.rate = 1;
+  utterance.pitch = 1;
+
+  utterance.onend = () => setReadingPostId(null);
+
+  setReadingPostId(postId);
+  speechSynthesis.speak(utterance);
+};
+
+  const handleShare = (post) => {
+    const postUrl = `${window.location.origin}/posts/${post._id}`;
+    navigator.clipboard.writeText(postUrl);
+    alert("Post URL copied!");
+  };
 
   return (
-    <div
-      className="relative min-h-screen flex text-white overflow-hidden"
-      style={{ background: bgTheme }}
-    >
+    <div className="relative min-h-screen flex text-white overflow-hidden" style={{ background: bgTheme }}>
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-full w-18 bg-[#1f2937] text-white p-6 z-40
-           transform transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        className={`fixed top-0 left-0 h-full w-18 bg-[#1f2937] text-white p-6 z-40 transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
           }`}
       >
         <div className="flex flex-col items-center py-6 space-y-6 text-white text-2xl">
-          <button onClick={() => navigate("/")} className="px-5 rounded hover:text-indigo-400">
-            ←
-          </button>
-          <button
-            onClick={() => {
-              navigate("/setting");
-              setSidebarOpen(false);
-            }}
-            className="hover:text-indigo-400"
-            title="Settings"
-          >
-            <FiSettings />
-          </button>
-          <button onClick={handleLogout} className="hover:text-indigo-400" title="Logout">
-            <FiLogOut />
-          </button>
+          <button onClick={() => navigate("/")} className="px-5 rounded hover:text-indigo-400">←</button>
+          <button onClick={() => { navigate("/setting"); setSidebarOpen(false); }} className="hover:text-indigo-400" title="Settings"><FiSettings /></button>
+          <button onClick={handleLogout} className="hover:text-indigo-400" title="Logout"><FiLogOut /></button>
           <VoiceNavigator />
         </div>
       </aside>
 
       {/* Overlay */}
-      {sidebarOpen && (
-        <div
-          onClick={() => setSidebarOpen(false)}
-          className="fixed inset-0 bg-red bg-opacity-50 z-30"
-        ></div>
-      )}
+      {sidebarOpen && <div onClick={() => setSidebarOpen(false)} className="fixed inset-0 bg-red bg-opacity-50 z-30"></div>}
 
       {/* Main Content */}
       <div className="flex-1 ml-0 md:ml-0 transition-all duration-300 ease-in-out w-full">
@@ -272,20 +346,14 @@ export const HomePage = () => {
           className="sticky top-0 z-20 flex flex-col md:flex-row justify-between items-center px-4 py-4 shadow-md bg-[#1f2937] gap-4"
         >
           <div className="flex items-center gap-4 w-full md:w-auto">
-            <button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="text-white text-2xl hover:text-indigo-400 transition"
-            >
+            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="text-white text-2xl hover:text-indigo-400 transition">
               <FiMenu />
             </button>
             <h1 className="text-2xl font-bold tracking-wide">Dev Platform</h1>
           </div>
 
           {/* Search */}
-          <div
-            onClick={() => navigate("/search")}
-            className="flex items-center bg-white/20 rounded-full px-3 py-1 w-full md:w-[300px] cursor-pointer"
-          >
+          <div onClick={() => navigate("/search")} className="flex items-center bg-white/20 rounded-full px-3 py-1 w-full md:w-[300px] cursor-pointer">
             <FaSearch className="text-white/80 mr-2" />
             <span className="bg-transparent outline-none w-full placeholder-white/70 text-white">
               Search Users
@@ -305,7 +373,7 @@ export const HomePage = () => {
           {/* Profile Icon */}
           <NavLink to="/userprofile">
             <img
-              src={posts[0]?.user?.profilePicture || "user.png"}
+              src={posts[0]?.user?.profilePicture || currentProfilePicture}
               alt="Profile"
               className="w-10 h-10 rounded-full border-2 border-white"
             />
@@ -332,180 +400,218 @@ export const HomePage = () => {
           ) : posts.length === 0 ? (
             <p className="text-gray-400 text-center">No posts yet.</p>
           ) : (
-            posts.map((post, index) => {
-              const likedByUser = Array.isArray(post.likes) && post.likes.some(
-                (likeUser) => likeUser.userId === userId
-              );
-
-              const isSaved = Array.isArray(savedPosts) && savedPosts.some(
-                (saved) => saved._id === post._id
-              );
+            posts.map((post, idx) => {
+              const likedByUser = Array.isArray(post.likes) && post.likes.some(like => like.userId === userId);
+              const isSaved = Array.isArray(savedPosts) && savedPosts.some(sp => sp._id === post._id);
 
               return (
                 <motion.div
-                  key={post._id || index}
-                  className="bg-gray-900 border border-gray-700 rounded-2xl shadow-lg overflow-hidden"
+                  key={post._id || idx}
+                  className="bg-white/10 backdrop-blur-md border border-gray-700 rounded-3xl p-6 shadow-2xl hover:shadow-3xl hover:scale-[1.02] transition-all duration-300 relative"
                   initial={{ opacity: 0, y: 40 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: index * 0.05 }}
-                  whileHover={{ scale: 1.01 }}
+                  transition={{ duration: 0.4, delay: idx * 0.05 }}
                 >
-
-                  {/* Header */}
-                  <div className="flex items-center justify-between p-4">
-                    {/* Left: Avatar + Username */}
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={post.user?.profilePicture || `https://i.pravatar.cc/40?u=${post.userId}`}
-                        alt="User avatar"
-                        className="w-10 h-10 rounded-full border border-gray-600"
-                      />
-                      <p className="text-white font-medium">{post.user?.username || "Unknown User"}</p>
-                    </div>
-
-                    {/* Right: Read + Save buttons */}
-                    <div className="flex items-center gap-2">
-                      {/* Read aloud button */}
-                      <button
-                        onClick={() =>
-                          readPost(
-                            post._id,
-                            `${post.user?.username || "Someone"} says: ${post.content}`
-                          )
-                        }
-                        className={`flex items-center gap-1 transition px-3 py-1 rounded-full border ${readingPostId === post._id
-                          ? "text-red-400 border-red-400 hover:text-red-600 hover:border-red-600"
-                          : "text-gray-400 border-gray-400 hover:text-yellow-400 hover:border-yellow-400"
-                          }`}
-                      >
-                        {readingPostId === post._id ? "⏹ Stop" : "🔊 Read"}
-                      </button>
-
-                      {/* Save button */}
-                      <button
-                        onClick={() => toggleSavePost(post._id)}
-                        className="flex items-center gap-1 text-blue-400  transition-all duration-300 px-3 py-1 rounded-full border border-blue-400 hover:bg-blue-400 hover:text-white"
-                        title="Save Post"
-                      >
-                        <FaSave size={16} />
-                        <span className="text-sm">
-                          {Array.isArray(savedPosts) && savedPosts.some(sp => sp._id === post._id)
-                            ? "Saved"
-                            : "Save"}
-                        </span>
-
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Content */}
-                  <div className="px-4 pb-4">
-                    <p className="text-gray-200 mb-3">{post.content}</p>
-                    {post.image && (
-                      <motion.img
-                        src={post.image}
-                        alt="Post"
-                        className="rounded-xl w-full object-cover max-h-96"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.3 }}
-                      />
-                    )}
-                  </div>
-
-                  {/* Footer */}
-                  <div className="flex flex-col px-4 py-3 border-t border-gray-700">
-                    {/* Likes count */}
-                    <div
-                      onClick={() => navigate(`/likes/${post._id}`)}
-                      className="text-sm text-gray-400 hover:text-blue-400 cursor-pointer mb-2"
-                    >
-                      {post.likes.length} {post.likes.length === 1 ? "Like" : "Likes"}
-                    </div>
-
-                    <div className="flex justify-between items-center mb-2">
-                      {/* Like button */}
-                      <button
-                        onClick={() => toggleLike(post)}
-                        className={`flex items-center gap-1 transition ${post.likes.includes(userId) || likedByUser ? "text-blue-400" : "text-gray-400 hover:text-blue-400"
-                          }`}
-                      >
-                        <FaThumbsUp
-                          className={`text-lg transition ${likedByUser ? "fill-current" : ""}`}
-                        />
-                        <span>{likedByUser ? "Liked" : "Like"}</span>
-                      </button>
-
-                      {/* Comment button */}
-                      <button
-                        onClick={() =>
-                          setCommentBoxOpenFor(commentBoxOpenFor === post._id ? null : post._id)
-                        }
-                        className="flex items-center gap-1 text-gray-400 hover:text-green-400 transition"
-                      >
-                        💬 <span>Comment ({post.comments.length})</span>
-                      </button>
-
-                      {/* Share button */}
-                      <button
-                        onClick={() => handleShare(post)}
-                        className="flex items-center gap-1 text-gray-400 hover:text-purple-400 transition"
-                      >
-                        🔄 <span>Share</span>
-                      </button>
-                    </div>
-
-                    {/* Comment input */}
-                    {commentBoxOpenFor === post._id && (
+                  <div className="absolute top-7 right-4 flex gap-3">
+                    {/* Edit/Delete only for your posts */}
+                    {post.userId === userId && (
                       <>
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            placeholder="Write a comment..."
-                            value={commentInputs[post._id] || ""}
-                            onChange={(e) => handleCommentChange(post._id, e.target.value)}
-                            className="flex-1 rounded-md px-3 py-1 text-white bg-gray-800"
-                          />
-                          <button
-                            onClick={() => submitComment(post._id)}
-                            className="bg-blue-500 hover:bg-blue-600 text-white px-3 rounded-md"
-                          >
-                            Send
-                          </button>
-                        </div>
-
-                        {/* Show comments */}
-                        {post.comments.length > 0 && (
-                          <div className="mb-2 max-h-40 overflow-y-auto text-sm space-y-2 mt-2">
-                            {post.comments.map((comment, idx) => (
-                              <div key={idx} className="flex items-center gap-2">
-                                <img
-                                  src={comment.user?.profilePicture || "user.png"}
-                                  alt="Comment user"
-                                  className="w-6 h-6 rounded-full"
-                                />
-                                <div>
-                                  <span className="font-semibold text-white">
-                                    {comment.user?.username || "Unknown"}
-                                  </span>{" "}
-                                  <span className="text-gray-300">{comment.text}</span>
-                                  {/* Show delete button if logged-in user owns the comment */}
-                                  {comment.user?.userId === userId && (
-                                    <button
-                                      onClick={() => deleteComment(post._id, comment._id)}
-                                      className="text-red-400 hover:text-red-600 text-xs ml-2"
-                                    >
-                                      ❌
-                                    </button>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
+                        <button
+                          onClick={() => handleEdit(post)}
+                          className="text-yellow-400 hover:text-yellow-300 transition"
+                          title="Edit Post"
+                        >
+                          ✏️
+                        </button>
+                        <button
+                          onClick={() => handleDelete(post._id)}
+                          className="text-red-500 hover:text-red-400 transition"
+                          title="Delete Post"
+                        >
+                          <FaTrash size={20} />
+                        </button>
                       </>
                     )}
+
+                    {/* Save is for everyone */}
+                    <button
+                      onClick={() => toggleSavePost(post._id)}
+                      className="flex items-center gap-1 text-blue-400 transition-all duration-300 px-3 py-1 rounded-full border border-blue-400 hover:bg-blue-400 hover:text-white"
+                      title="Save Post"
+                    >
+                      <FaSave size={16} />
+                      <span className="text-sm">{isSaved ? "Saved" : "Save"}</span>
+                    </button>
                   </div>
+
+                  {/* Header */}
+                  <div className="flex items-center gap-4 mb-4">
+                    <img src={post.user?.profilePicture || currentProfilePicture} alt="Profile" className="w-12 h-12 rounded-full object-cover border-2 border-indigo-500" />
+                    <div>
+                      <p className="text-white font-semibold">{post.user?.username || "Unknown"}</p>
+                      <p className="text-gray-400 text-xs">{new Date(post.createdAt).toLocaleString()}</p>
+                    </div>
+                  </div>
+                  {/* Edit mode */}
+                  {editingPostId === post._id ? (
+                    <div className="mb-4">
+                      <textarea
+                        value={editContent}
+                        onChange={e => setEditContent(e.target.value)}
+                        className="w-full rounded-md px-3 py-2 text-white bg-gray-800"
+                      />
+                      {/* Existing images preview & remove */}
+                      {editImages.length > 0 && (
+                        <div className="grid grid-cols-2 gap-2 my-3">
+                          {editImages.map((img, i) => (
+                            <div key={i} className="relative group">
+                              <img
+                                src={img.url}
+                                alt={`Edit image ${i}`}
+                                className="rounded-xl w-full object-cover max-h-64"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditImages(prev => prev.filter((_, idx) => idx !== i));
+                                  setImagesToRemove(prev => [...prev, img._id || img.url]);
+                                }}
+                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-80 hover:opacity-100"
+                                title="Remove image"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {/* New images preview & remove */}
+                      {newImages.length > 0 && (
+                        <div className="grid grid-cols-2 gap-2 my-3">
+                          {newImages.map((file, idx) => (
+                            <div key={idx} className="relative group">
+                              <img
+                                src={URL.createObjectURL(file)}
+                                alt={`New image ${idx}`}
+                                className="rounded-xl w-full object-cover max-h-64"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setNewImages(prev => prev.filter((_, j) => j !== idx))}
+                                className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-0.5 w-5 h-5 flex items-center justify-center hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600 opacity-90 hover:opacity-100 transition-opacity duration-150"
+                                title="Remove new image"
+                                aria-label="Remove new image"
+                              >
+                                <FaTimes size={10} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {/* Image upload input */}
+                      <div className="mb-3 flex flex-col gap-2 text-white">
+                        <label
+                          htmlFor={`file-upload-edit-${post._id}`}
+                          className="cursor-pointer flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full shadow transition"
+                        >
+                          <FaPlusCircle className="text-lg" />
+                          <span>Add Images</span>
+                        </label>
+                        <input
+                          id={`file-upload-edit-${post._id}`}
+                          type="file"
+                          multiple
+                          accept="image/*"
+                          onChange={e => setNewImages(Array.from(e.target.files))}
+                          className="hidden"
+                        />
+                      </div>
+                      <div className="flex gap-2 mt-2">
+                        <button onClick={() => saveEdit(post._id)} className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md">
+                          Save
+                        </button>
+                        <button onClick={() => setEditingPostId(null)} className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded-md">
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <p className="text-gray-200 text-base leading-relaxed mb-4">{post.content}</p>
+                      {Array.isArray(post.images) && post.images.length > 0 && (
+                        <div className="grid grid-cols-2 gap-2">
+                          {post.images.map((img, i) => (
+                            <motion.img
+                              key={i}
+                              src={img.url}
+                              alt={`Post image ${i}`}
+                              className="rounded-xl w-full object-cover max-h-96"
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              transition={{ duration: 0.3, delay: i * 0.1 }}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {/* Likes count */}
+                  <div
+                    onClick={() => navigate(`/likes/${post._id}`)}
+                    className="text-sm text-gray-400 hover:text-blue-400 cursor-pointer mb-2 mt-2"
+                  >
+                    {post.likes.length} {post.likes.length === 1 ? "Like" : "Likes"}
+                  </div>
+                  {/* Actions */}
+                  <div className="flex items-center gap-6 mb-2 text-gray-300">
+                    <button onClick={() => toggleLike(post)} className={`flex items-center gap-1 ${post.likes.includes(userId) || likedByUser ? "text-blue-400" : "text-gray-400 hover:text-blue-400"}`}>
+                      <FaThumbsUp /> <span>{post.likes.length}</span>
+                    </button>
+                    <button onClick={() => setCommentBoxOpenFor(commentBoxOpenFor === post._id ? null : post._id)} className="flex items-center gap-1 text-gray-400 hover:text-green-400 transition">
+                      <FaComment /> <span>{post.comments.length}</span>
+                    </button>
+                    <button onClick={() => readPost(post._id, `${post.user?.username || "Someone"} says: ${post.content}`)} className={`flex items-center gap-1 ${readingPostId === post._id ? "text-red-400" : "text-gray-400 hover:text-yellow-400"}`}>
+                      {readingPostId === post._id ? "⏹ Stop" : "🔊 Read"}
+                    </button>
+                    <button onClick={() => handleShare(post)} className="flex items-center gap-1 text-gray-400 hover:text-purple-400 transition">
+                      🔄 <span>Share</span>
+                    </button>
+                  </div>
+                  {/* Comment input and comments UI */}
+                  {commentBoxOpenFor === post._id && (
+                    <div className="mt-2">
+                      <div className="flex gap-2 mb-2">
+                        <input
+                          type="text"
+                          placeholder="Write a comment..."
+                          value={commentInputs[post._id] || ""}
+                          onChange={e => handleCommentChange(post._id, e.target.value)}
+                          className="flex-1 rounded-md px-3 py-1 text-white bg-gray-800"
+                        />
+                        <button onClick={() => submitComment(post._id)} className="bg-blue-500 hover:bg-blue-600 text-white px-3 rounded-md">
+                          Send
+                        </button>
+                      </div>
+                      {post.comments.length > 0 && (
+                        <div className="space-y-2 max-h-40 overflow-y-auto text-sm">
+                          {post.comments.map((comment, idx) => (
+                            <div key={idx} className="flex items-center gap-2">
+                              <img src={comment.user?.profilePicture || "user.png"} alt="Comment user" className="w-6 h-6 rounded-full" />
+                              <div>
+                                <span className="font-semibold text-white">{comment.user?.username || "Unknown"}</span>{" "}
+                                <span className="text-gray-300">{comment.text}</span>
+                                {comment.user?.userId === userId && (
+                                  <button onClick={() => deleteComment(post._id, comment._id)} className="text-red-400 hover:text-red-600 text-xs ml-2">
+                                    ❌
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </motion.div>
               );
             })

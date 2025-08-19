@@ -14,7 +14,6 @@ import { CreatePost } from "../Posts/CreatePost";
 import { PostsList } from "../Posts/PostList";
 import { SearchPage } from "../pages/searchPage";
 import { Likes } from "../Posts/Likes";
-import UploadImage from "../pages/test.jsx";
 import { PostCard } from "../Posts/PostCard.jsx";
 
 export const router_page = createBrowserRouter([
@@ -104,12 +103,6 @@ export const router_page = createBrowserRouter([
         path:"/postcard",
         element:<ProtectedRoot>
                 <PostCard/>
-                </ProtectedRoot>
-    },
-    {
-        path:"test",
-        element:<ProtectedRoot>
-                <UploadImage/>
                 </ProtectedRoot>
     },
 ]

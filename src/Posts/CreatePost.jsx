@@ -1,13 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import {
-  Camera,
   Send,
   Image as ImageIcon,
-  FileUp,
   Globe,
   Lock,
   X,
+  Mic,
+  MicOff,
 } from "lucide-react";
 import { FiLogOut, FiMenu, FiSettings } from "react-icons/fi";
 import { NavLink, useNavigate } from "react-router-dom";
@@ -16,14 +16,54 @@ import { FaSearch } from "react-icons/fa";
 
 export const CreatePost = () => {
   const [content, setContent] = useState("");
-  const [imageFile, setImageFile] = useState(null);
-  const [filePreview, setFilePreview] = useState("");
-  const [docFile, setDocFile] = useState(null);
+  const [imageFile, setImageFile] = useState([]);
+  const [filePreview, setFilePreview] = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [visibility, setVisibility] = useState("public");
+  const [isListening, setIsListening] = useState(false);
+  const [speechLang, setSpeechLang] = useState("en-US");
+
+  const recognitionRef = useRef(null);
 
   const userId = JSON.parse(localStorage.getItem("userId"));
   const navigate = useNavigate();
+
+  // Start listening
+  const startListening = () => {
+    if ("webkitSpeechRecognition" in window) {
+      const recognition = new window.webkitSpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = speechLang; // dynamic language
+
+      recognition.onresult = (event) => {
+        let transcript = "";
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          transcript += event.results[i][0].transcript;
+        }
+        setContent(transcript);
+      };
+
+      recognition.onerror = (event) => {
+        console.error("Speech recognition error:", event.error);
+      };
+
+      recognition.start();
+      recognitionRef.current = recognition;
+      setIsListening(true);
+    } else {
+      alert("Speech Recognition not supported in this browser.");
+    }
+  };
+
+  // Stop listening
+  const stopListening = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      recognitionRef.current = null;
+    }
+    setIsListening(false);
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("userId");
@@ -31,19 +71,12 @@ export const CreatePost = () => {
   };
 
   const handleImageFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => setFilePreview(reader.result);
-      reader.readAsDataURL(file);
-    }
-  };
+    const files = Array.from(e.target.files);
+    if (files.length > 0) {
+      setImageFile((prev) => [...prev, ...files]);
 
-  const handleDocFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setDocFile(file);
+      const newPreviews = files.map((file) => URL.createObjectURL(file));
+      setFilePreview((prev) => [...prev, ...newPreviews]);
     }
   };
 
@@ -64,8 +97,8 @@ export const CreatePost = () => {
     formData.append("userId", userId);
     formData.append("content", content);
     formData.append("visibility", visibility);
-    if (imageFile) formData.append("image", imageFile);
-    if (docFile) formData.append("document", docFile);
+
+    imageFile.forEach((file) => formData.append("files", file));
 
     try {
       const res = await fetch(
@@ -84,11 +117,9 @@ export const CreatePost = () => {
       const data = await res.json();
       console.log("Post created:", data);
 
-      // Reset form
       setContent("");
-      setImageFile(null);
-      setFilePreview("");
-      setDocFile(null);
+      setImageFile([]);
+      setFilePreview([]);
       setVisibility("public");
 
       navigate("/home");
@@ -151,7 +182,9 @@ export const CreatePost = () => {
           >
             <FiMenu />
           </button>
-          <h1 className="text-2xl font-bold tracking-wide text-white">Dev Platform</h1>
+          <h1 className="text-2xl font-bold tracking-wide text-white">
+            Dev Platform
+          </h1>
         </div>
 
         <div
@@ -195,25 +228,50 @@ export const CreatePost = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
-        <textarea
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder="Share something amazing..."
-          className="w-full p-3 rounded-xl bg-gray-800 text-white border border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 transition-all mb-3 resize-none"
-          rows={3}
-          required
-        />
+        {/* Language Selection */}
+        <div className="flex items-center gap-3 mb-3">
+          <label className="text-gray-300">🎙️ Speech Language:</label>
+          <select
+            value={speechLang}
+            onChange={(e) => setSpeechLang(e.target.value)}
+            className="p-2 rounded-xl bg-gray-800 text-white border border-gray-700"
+          >
+            <option value="en-US">English (US)</option>
+            <option value="hi-IN">हिन्दी (Hindi)</option>
+            <option value="gu-IN">ગુજરાતી (Gujarati)</option>
+          </select>
+        </div>
 
-        {/* Image URL input (optional) */}
-        <div className="flex items-center mb-3">
-          <Camera className="text-gray-400 mr-2" size={20} />
-          <input
-            type="text"
-            value={filePreview ? "" : ""}
-            disabled
-            placeholder={filePreview ? "" : "Use file upload below for images"}
-            className="flex-1 p-2 rounded-xl bg-gray-800 text-white border border-gray-700 cursor-not-allowed"
+        {/* Textarea + Mic Button */}
+        <div className="relative mb-3">
+          <textarea
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder="Share something amazing..."
+            className="w-full p-3 rounded-xl bg-gray-800 text-white border border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 transition-all resize-none"
+            rows={3}
+            required
           />
+
+          {!isListening ? (
+            <button
+              type="button"
+              onClick={startListening}
+              className="absolute bottom-3 right-3 text-green-400 hover:text-green-500"
+              title="Start Voice Input"
+            >
+              <Mic size={20} />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={stopListening}
+              className="absolute bottom-3 right-3 text-red-400 hover:text-red-500"
+              title="Stop Voice Input"
+            >
+              <MicOff size={20} />
+            </button>
+          )}
         </div>
 
         {/* File Uploads */}
@@ -229,68 +287,50 @@ export const CreatePost = () => {
             id="file-upload"
             type="file"
             accept="image/*"
+            multiple
             onChange={handleImageFileChange}
-            className="hidden"
-          />
-
-          <label
-            htmlFor="doc-upload"
-            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-800 text-gray-300 hover:bg-gray-700 cursor-pointer"
-          >
-            <FileUp size={18} />
-            Upload Document
-          </label>
-          <input
-            id="doc-upload"
-            type="file"
-            accept=".pdf,.doc,.docx,.txt"
-            onChange={handleDocFileChange}
             className="hidden"
           />
         </div>
 
         {/* Image Preview */}
-        {filePreview && (
-          <div className="mb-3 rounded-xl overflow-hidden border border-gray-700 relative inline-block">
-            <img
-              src={filePreview}
-              alt="Preview"
-              className="w-28 h-28 object-cover"
-            />
-            <button
-              type="button"
-              onClick={() => {
-                setFilePreview("");
-                setImageFile(null);
-              }}
-              className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-            >
-              <X size={14} />
-            </button>
-          </div>
-        )}
-
-        {/* Document Preview */}
-        {docFile && (
-          <div className="flex items-center justify-between p-3 mb-3 bg-gray-800 rounded-xl border border-gray-700 text-gray-300">
-            <div className="flex items-center gap-2">
-              <FileUp size={18} />
-              <span className="truncate max-w-[200px]">{docFile.name}</span>
-            </div>
-            <button
-              type="button"
-              onClick={() => setDocFile(null)}
-              className="p-1 rounded-full bg-red-500 text-white hover:bg-red-600"
-            >
-              <X size={14} />
-            </button>
+        {filePreview.length > 0 && (
+          <div className="flex gap-3 flex-wrap mb-3">
+            {filePreview.map((preview, index) => (
+              <div
+                key={index}
+                className="relative rounded-xl overflow-hidden border border-gray-700"
+              >
+                <img
+                  src={preview}
+                  alt={`Preview ${index}`}
+                  className="w-28 h-28 object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFilePreview((prev) =>
+                      prev.filter((_, i) => i !== index)
+                    );
+                    setImageFile((prev) => prev.filter((_, i) => i !== index));
+                  }}
+                  className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            ))}
           </div>
         )}
 
         {/* Visibility */}
         <div className="flex items-center gap-3 mb-4">
           <label className="flex items-center gap-2 text-gray-300">
-            {visibility === "public" ? <Globe size={18} /> : <Lock size={18} />}
+            {visibility === "public" ? (
+              <Globe size={18} />
+            ) : (
+              <Lock size={18} />
+            )}
             Visibility:
           </label>
           <select
