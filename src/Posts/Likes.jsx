@@ -170,7 +170,7 @@ export const Likes = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05 }}
-                onClick={() => navigate(`/userprofilesdata/${userId}`)}
+                onClick={() => navigate(`/userprofilesdata/${user.userId}`)}
                 className="flex items-center gap-3 bg-gray-800 p-3 rounded-xl cursor-pointer hover:bg-gray-700 transition"
               >
                 <motion.img

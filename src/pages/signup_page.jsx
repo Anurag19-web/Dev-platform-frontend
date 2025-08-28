@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 export const SignUpPage = () => {
 
@@ -16,6 +17,7 @@ export const SignUpPage = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const { bgTheme } = useSelector((state) => state.settings);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -131,20 +133,27 @@ export const SignUpPage = () => {
           </div>
 
           {/* Password */}
-          <div>
+          <div className="relative">
             <label htmlFor="password" className="block text-sm mb-2 font-medium">
               Password
             </label>
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               id="password"
               placeholder="Enter your password"
               value={formData.password}
               onChange={handleChange}
               required
-              className="w-full h-14 px-5 rounded-lg bg-[#2d3748] border border-indigo-600 text-white placeholder-gray-400
+              className="w-full h-14 px-5 pr-12 rounded-lg bg-[#2d3748] border border-indigo-600 text-white placeholder-gray-400
                focus:outline-none focus:ring-2 focus:ring-purple-500 text-lg"
             />
+            {/* 👁️ Toggle Password Visibility */}
+            <span
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-4 top-2/3 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-white"
+            >
+              {showPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
+            </span>
           </div>
 
           {/* Sign Up Button */}

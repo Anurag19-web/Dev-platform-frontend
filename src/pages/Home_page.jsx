@@ -50,11 +50,13 @@ export const HomePage = () => {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const res = await fetch(`${BASE_URL}/api/posts`);
+        const res = await fetch(`${BASE_URL}/api/posts/feed/${userId}`);
         if (!res.ok) throw new Error("Failed to fetch posts");
 
         const data = await res.json();
         setPosts(data.posts || []);
+        console.log(data.posts);
+        
       } catch (err) {
         console.error("Error fetching posts:", err);
       } finally {
@@ -72,7 +74,7 @@ export const HomePage = () => {
       return;
     }
 
-    const liked = post.likes.some((likeUser) => likeUser.userId === userId);
+    const liked = Array.isArray(post.likes) && post.likes.includes(userId);
 
     try {
       const url = `https://dev-platform-backend.onrender.com/api/posts/${post._id}/${liked ? "unlike" : "like"}`;
@@ -86,7 +88,7 @@ export const HomePage = () => {
 
       const result = await res.json();
       console.log(result);
-      console.log(post._id);
+      console.log(post._id,userId);
 
       setPosts((prev) =>
         prev.map((p) =>
@@ -205,7 +207,7 @@ export const HomePage = () => {
   const submitComment = async (postId) => {
     if (!userId) return;
     const text = commentInputs[postId];
-    const username = posts?.user?.username || "Unknown";
+    const username = posts.username || "Unknown";
     if (!text || text.trim() === "") return;
     try {
       const res = await fetch(`${BASE_URL}/api/posts/${postId}/comment`, {
@@ -373,7 +375,7 @@ const readPost = (postId, text) => {
           {/* Profile Icon */}
           <NavLink to="/userprofile">
             <img
-              src={posts[0]?.user?.profilePicture || currentProfilePicture}
+              src={posts[0]?.profilePicture || currentProfilePicture}
               alt="Profile"
               className="w-10 h-10 rounded-full border-2 border-white"
             />
@@ -445,10 +447,10 @@ const readPost = (postId, text) => {
                   </div>
 
                   {/* Header */}
-                  <div className="flex items-center gap-4 mb-4">
-                    <img src={post.user?.profilePicture || currentProfilePicture} alt="Profile" className="w-12 h-12 rounded-full object-cover border-2 border-indigo-500" />
+                  <div className="flex items-center gap-4 mb-4 cursor-pointer" onClick={()=>navigate(`/userprofilesdata/${post.userId}`)}>
+                    <img src={post.profilePicture || currentProfilePicture } alt="Profile" className="w-12 h-12 rounded-full object-cover border-2 border-indigo-500" />
                     <div>
-                      <p className="text-white font-semibold">{post.user?.username || "Unknown"}</p>
+                      <p className="text-white font-semibold">{post.username || "Unknown"}</p>
                       <p className="text-gray-400 text-xs">{new Date(post.createdAt).toLocaleString()}</p>
                     </div>
                   </div>
@@ -570,7 +572,7 @@ const readPost = (postId, text) => {
                     <button onClick={() => setCommentBoxOpenFor(commentBoxOpenFor === post._id ? null : post._id)} className="flex items-center gap-1 text-gray-400 hover:text-green-400 transition">
                       <FaComment /> <span>{post.comments.length}</span>
                     </button>
-                    <button onClick={() => readPost(post._id, `${post.user?.username || "Someone"} says: ${post.content}`)} className={`flex items-center gap-1 ${readingPostId === post._id ? "text-red-400" : "text-gray-400 hover:text-yellow-400"}`}>
+                    <button onClick={() => readPost(post._id, `${post.username || "Someone"} says: ${post.content}`)} className={`flex items-center gap-1 ${readingPostId === post._id ? "text-red-400" : "text-gray-400 hover:text-yellow-400"}`}>
                       {readingPostId === post._id ? "⏹ Stop" : "🔊 Read"}
                     </button>
                     <button onClick={() => handleShare(post)} className="flex items-center gap-1 text-gray-400 hover:text-purple-400 transition">
@@ -596,11 +598,11 @@ const readPost = (postId, text) => {
                         <div className="space-y-2 max-h-40 overflow-y-auto text-sm">
                           {post.comments.map((comment, idx) => (
                             <div key={idx} className="flex items-center gap-2">
-                              <img src={comment.user?.profilePicture || "user.png"} alt="Comment user" className="w-6 h-6 rounded-full" />
+                              <img src={comment.profilePicture || "user.png"} alt="Comment user" className="w-6 h-6 rounded-full" />
                               <div>
-                                <span className="font-semibold text-white">{comment.user?.username || "Unknown"}</span>{" "}
+                                <span className="font-semibold text-white">{comment.username || "Unknown"}</span>{" "}
                                 <span className="text-gray-300">{comment.text}</span>
-                                {comment.user?.userId === userId && (
+                                {comment.userId === userId && (
                                   <button onClick={() => deleteComment(post._id, comment._id)} className="text-red-400 hover:text-red-600 text-xs ml-2">
                                     ❌
                                   </button>

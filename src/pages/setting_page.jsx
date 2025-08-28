@@ -10,6 +10,7 @@ export const Setting = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
+  const userId = JSON.parse(localStorage.getItem("userId"));
 
   const { successMessage, errorMessage, loading, bgTheme, language, notifications } = useSelector(
     (state) => state.settings
@@ -17,6 +18,33 @@ export const Setting = () => {
 
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [isPrivate, setIsPrivate] = useState(false);
+
+    const handleLogout = () => {
+    localStorage.removeItem("userId");
+    navigate("/login");
+  };
+
+  // Toggle privacy (update backend)
+  const handlePrivacy = () => {
+    const id = userId;
+    fetch(`https://dev-platform-backend.onrender.com/api/users/${userId}/privacy`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ isPrivate: !isPrivate }),
+    })
+      .then((res) => res.json())
+      .then((data) => setIsPrivate(data.isPrivate))
+      .catch((err) => console.error("Error updating privacy:", err));
+  };
+
+  useEffect(() => {
+    fetch(`https://dev-platform-backend.onrender.com/api/users/${userId}`)
+      .then(res => res.json())
+      .then(data => setIsPrivate(data.isPrivate))
+      .catch(err => console.error(err));
+  }, [userId]);
+
 
   useEffect(() => {
     i18n.changeLanguage(language);
@@ -152,12 +180,24 @@ export const Setting = () => {
             <motion.button
               onClick={() => dispatch(toggleNotifications())}
               className={`px-4 py-1 rounded-full font-medium transition-all duration-300 ${notifications
-                  ? "bg-green-500 text-white"
-                  : "bg-gray-300 text-black"
+                ? "bg-green-500 text-white"
+                : "bg-gray-300 text-black"
                 }`}
               whileHover={{ scale: 1.05 }}
             >
               {notifications ? t("On") : t("Off")}
+            </motion.button>
+          </div>
+
+          {/* Account Privacy */}
+          <div className="flex items-center justify-between mb-4">
+            <span>{t("Account Privacy")}</span>
+            <motion.button
+              onClick={handlePrivacy}
+              className={`px-4 py-1 rounded-full font-medium transition-all duration-300 ${isPrivate ? "bg-red-500 text-white" : "bg-green-500 text-white"}`}
+              whileHover={{ scale: 1.05 }}
+            >
+              {isPrivate ? "🔒" : "🌐"}
             </motion.button>
           </div>
 
@@ -203,6 +243,7 @@ export const Setting = () => {
         {/* Danger Zone */}
         <section>
           <motion.button
+          onClick={handleLogout}
             className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-all duration-300"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
