@@ -14,10 +14,11 @@ export const UserProfilesData = () => {
   const userProfilesData = useSelector(selectUserProfile);
   const viewedProfile = useSelector(selectViewedProfile);
   const userId = useMemo(() => JSON.parse(localStorage.getItem("userId")), []);
-  const canViewFullProfile = !viewedProfile?.isPrivate || viewedProfile?.followers?.includes(userId) || id === userId;
   const [isFollowing, setIsFollowing] = useState(false);
   const { bgTheme } = useSelector((state) => state.settings);
-  const userProfile = useSelector(selectUserProfile);
+
+  // Check if logged-in user can see full profile
+  const canViewFullProfile = !viewedProfile?.isPrivate || viewedProfile?.followers?.includes(userId) || id === userId;
 
   useEffect(() => {
     if (viewedProfile?.followers?.includes(userId)) {
@@ -93,26 +94,28 @@ export const UserProfilesData = () => {
           </div>
 
           <h1 className="text-3xl font-bold mt-4">{viewedProfile.username}</h1>
-          <p className="text-gray-300 text-sm mt-1">{viewedProfile.email}</p>
+
+          {/* Follow/Unfollow button (always visible for other users) */}
+          {id !== userId && (
+            <button
+              onClick={handleToggleFollow}
+              className={`h-10 w-30 mt-5 rounded-lg text-sm shadow-lg transition ${isFollowing ? "bg-red-600 hover:bg-red-700" : "bg-indigo-600 hover:bg-indigo-700"} text-white`}
+            >
+              {isFollowing ? "Unfollow" : "Follow"}
+            </button>
+          )}
+
+          {/* Private message for non-followers */}
           {id !== userId && !canViewFullProfile && (
             <p className="mt-4 text-gray-400 italic text-center">
               This account is private. Only followers can view posts and details.
             </p>
           )}
 
-          {/* Followers / Following */}
+          {/* Only show the full profile if allowed */}
           {canViewFullProfile && (
             <>
-              {id !== userId && (
-                <button
-                  onClick={handleToggleFollow}
-                  className={`h-10 w-30 mt-5 rounded-lg text-sm shadow-lg transition ${isFollowing ? "bg-red-600 hover:bg-red-700" : "bg-indigo-600 hover:bg-indigo-700"
-                    } text-white`}
-                >
-                  {isFollowing ? "Unfollow" : "Follow"}
-                </button>
-              )}
-
+              {/* Followers / Following / Posts */}
               <div className="flex gap-6 mt-4" onClick={() => navigate(`/followlist/${id}`)}>
                 <div className="text-center cursor-pointer">
                   <p className="text-xl font-bold">{viewedProfile.followers?.length || 0}</p>
@@ -132,66 +135,68 @@ export const UserProfilesData = () => {
               >
                 📄 See All Posts
               </motion.button>
+
+              {/* BIO */}
+              <div className="mt-6 text-center">
+                <h2 className="text-xl font-semibold text-indigo-400">📝 Bio</h2>
+                <p className="mt-2 text-gray-300">{viewedProfile.bio || "No bio added yet."}</p>
+              </div>
+
+              {/* SKILLS */}
+              <div className="mt-6">
+                <h2 className="text-xl font-semibold text-indigo-400">🛠️ Skills</h2>
+                <div className="mt-2 flex flex-wrap gap-3">
+                  {viewedProfile.skills?.length > 0 ? (
+                    viewedProfile.skills.map((skill, idx) => (
+                      <span key={idx} className="px-4 py-2 bg-purple-600 rounded-full text-sm font-medium shadow-md">
+                        {skill}
+                      </span>
+                    ))
+                  ) : (
+                    <p className="text-gray-400">No skills added yet.</p>
+                  )}
+                </div>
+              </div>
+
+              {/* EXPERIENCE */}
+              <div className="mt-6">
+                <h2 className="text-xl font-semibold text-indigo-400">📌 Experience</h2>
+                <ul className="mt-2 space-y-2">
+                  {viewedProfile.experience?.length > 0 ? (
+                    viewedProfile.experience.map((exp, idx) => (
+                      <li key={idx} className="bg-[#2d3748] p-4 rounded-lg shadow">
+                        <h3 className="text-lg font-bold">{exp.role}</h3>
+                        <p className="text-gray-400">{exp.company} — {exp.duration}</p>
+                      </li>
+                    ))
+                  ) : (
+                    <p className="text-gray-400">No experience added yet.</p>
+                  )}
+                </ul>
+              </div>
+
+              {/* CONNECT */}
+              <div className="mt-6 text-center">
+                <h2 className="text-xl font-semibold text-indigo-400">🔗 Connect</h2>
+                <div className="flex justify-center gap-12 mt-4 flex-wrap">
+                  {viewedProfile.github && (
+                    <div className="flex flex-col items-center text-white max-w-xs text-center">
+                      <i className="fab fa-github text-3xl"></i>
+                      <span className="mt-1 font-medium">GitHub</span>
+                      <span className="text-xs break-all">{viewedProfile.github}</span>
+                    </div>
+                  )}
+                  {viewedProfile.linkedin && (
+                    <div className="flex flex-col items-center text-white max-w-xs text-center">
+                      <i className="fab fa-linkedin text-3xl"></i>
+                      <span className="mt-1 font-medium">LinkedIn</span>
+                      <span className="text-xs break-all">{viewedProfile.linkedin}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
             </>
           )}
-        </div>
-
-        <div className="mt-6 text-center">
-          <h2 className="text-xl font-semibold text-indigo-400">📝 Bio</h2>
-          <p className="mt-2 text-gray-300">{viewedProfile.bio || "No bio added yet."}</p>
-        </div>
-
-        <div className="mt-6">
-          <h2 className="text-xl font-semibold text-indigo-400">🛠️ Skills</h2>
-          <div className="mt-2 flex flex-wrap gap-3">
-            {viewedProfile.skills?.length > 0 ? (
-              viewedProfile.skills.map((skill, idx) => (
-                <span key={idx} className="px-4 py-2 bg-purple-600 rounded-full text-sm font-medium shadow-md">
-                  {skill}
-                </span>
-              ))
-            ) : (
-              <p className="text-gray-400">No skills added yet.</p>
-            )}
-          </div>
-        </div>
-
-        <div className="mt-6">
-          <h2 className="text-xl font-semibold text-indigo-400">📌 Experience</h2>
-          <ul className="mt-2 space-y-2">
-            {viewedProfile.experience?.length > 0 ? (
-              viewedProfile.experience.map((exp, idx) => (
-                <li key={idx} className="bg-[#2d3748] p-4 rounded-lg shadow">
-                  <h3 className="text-lg font-bold">{exp.role}</h3>
-                  <p className="text-gray-400">
-                    {exp.company} — {exp.duration}
-                  </p>
-                </li>
-              ))
-            ) : (
-              <p className="text-gray-400">No experience added yet.</p>
-            )}
-          </ul>
-        </div>
-
-        <div className="mt-6 text-center">
-          <h2 className="text-xl font-semibold text-indigo-400">🔗 Connect</h2>
-          <div className="flex justify-center gap-12 mt-4 flex-wrap">
-            {viewedProfile.github && (
-              <div className="flex flex-col items-center text-white max-w-xs text-center">
-                <i className="fab fa-github text-3xl"></i>
-                <span className="mt-1 font-medium">GitHub</span>
-                <span className="text-xs break-all">{viewedProfile.github}</span>
-              </div>
-            )}
-            {viewedProfile.linkedin && (
-              <div className="flex flex-col items-center text-white max-w-xs text-center">
-                <i className="fab fa-linkedin text-3xl"></i>
-                <span className="mt-1 font-medium">LinkedIn</span>
-                <span className="text-xs break-all">{viewedProfile.linkedin}</span>
-              </div>
-            )}
-          </div>
         </div>
       </motion.div>
     </div>

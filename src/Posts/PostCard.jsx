@@ -22,7 +22,6 @@ export const PostCard = () => {
     const navigate = useNavigate();
     const { bgTheme } = useSelector((state) => state.settings);
     const { savedPosts, setSavedPosts } = useSavedPosts();
-
     const [posts, setPosts] = useState([]);
     const [loadingPosts, setLoadingPosts] = useState(true);
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -35,19 +34,16 @@ export const PostCard = () => {
     const [imagesToRemove, setImagesToRemove] = useState([]);
     const [newImages, setNewImages] = useState([]);
 
-    // Current image index for slider
-    const [imageIndices, setImageIndices] = useState({});
-
     const userId = JSON.parse(localStorage.getItem("userId"));
     const currentProfilePicture = "user.png";
 
     useEffect(() => {
         (async () => {
             try {
-                const res = await fetch(`${BASE_URL}/api/posts`);
+                const res = await fetch(`${BASE_URL}/api/save/${userId}/saved`);
                 if (!res.ok) throw new Error("Failed to fetch posts");
                 const data = await res.json();
-                setPosts(data.posts || []);
+                setPosts(data || []);
             } catch (err) {
                 console.error("Error fetching posts:", err);
             } finally {
@@ -55,6 +51,22 @@ export const PostCard = () => {
             }
         })();
     }, []);
+
+    // Function to remove a saved post
+    const removeSavedPost = async (postId) => {
+        try {
+            const res = await fetch(`${BASE_URL}/api/save/${userId}/${postId}`, {
+                method: "DELETE",
+            });
+
+            if (!res.ok) throw new Error("Failed to remove saved post");
+
+            await res.json();
+            setPosts((prev) => prev.filter((post) => post._id !== postId));
+        } catch (error) {
+            console.error("Error removing saved post:", error);
+        }
+    };
 
     const handleEdit = (post) => {
         setEditingPostId(post._id);
@@ -344,7 +356,7 @@ export const PostCard = () => {
 
                     <NavLink to="/userprofile">
                         <img
-                            src={posts[0]?.user?.profilePicture || currentProfilePicture}
+                            src={posts[0]?.profilePicture || currentProfilePicture}
                             alt="Profile"
                             className="w-10 h-10 rounded-full border-2 border-white"
                         />
@@ -405,13 +417,13 @@ export const PostCard = () => {
 
                                     <div className="flex items-center gap-4 mb-4">
                                         <img
-                                            src={post.user?.profilePicture || currentProfilePicture}
+                                            src={post.profilePicture || currentProfilePicture}
                                             alt="Profile"
                                             className="w-12 h-12 rounded-full object-cover border-2 border-indigo-500"
                                         />
                                         <div>
                                             <p className="text-white font-semibold">
-                                                {post.user?.username || "Unknown"}
+                                                {post.username || "Unknown"}
                                             </p>
                                             <p className="text-gray-400 text-xs">
                                                 {new Date(post.createdAt).toLocaleString()}
@@ -552,7 +564,7 @@ export const PostCard = () => {
                                             onClick={() =>
                                                 readPost(
                                                     post._id,
-                                                    `${post.user?.username || "Someone"} says: ${post.content
+                                                    `${post.username || "Someone"} says: ${post.content
                                                     }`
                                                 )
                                             }
@@ -582,11 +594,11 @@ export const PostCard = () => {
                                                 <div className="space-y-2 max-h-40 overflow-y-auto text-sm">
                                                     {post.comments.map((comment, idx) => (
                                                         <div key={idx} className="flex items-center gap-2">
-                                                            <img src={comment.user?.profilePicture || "user.png"} alt="Comment user" className="w-6 h-6 rounded-full" />
+                                                            <img src={comment.profilePicture || "user.png"} alt="Comment user" className="w-6 h-6 rounded-full" />
                                                             <div>
-                                                                <span className="font-semibold text-white">{comment.user?.username || "Unknown"}</span>{" "}
+                                                                <span className="font-semibold text-white">{comment.username || "Unknown"}</span>{" "}
                                                                 <span className="text-gray-300">{comment.text}</span>
-                                                                {comment.user?.userId === userId && (
+                                                                {comment.userId === userId && (
                                                                     <button onClick={() => deleteComment(post._id, comment._id)} className="text-red-400 hover:text-red-600 text-xs ml-2">❌</button>
                                                                 )}
                                                             </div>

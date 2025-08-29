@@ -9,10 +9,12 @@
   "Update Password": "Update Password",
   "Updating password...": "Updating password...",
   "Preferences": "Preferences",
+  "Microphone": "Microphone",
   "Enable Notifications": "Enable Notifications",
+  "Account Privacy": "Account Privacy",
   "Background Theme": "Background Theme",
-  "Log Out": "Log Out",
   "Language": "Language",
   "Saved Posts": "Saved Posts",
-  "Check Saved Posts": "Check Saved Posts"
+  "Check Saved Posts": "Check Saved Posts",
+  "Log Out": "Log Out"
 }

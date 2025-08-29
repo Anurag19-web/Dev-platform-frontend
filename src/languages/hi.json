@@ -9,8 +9,12 @@
   "Update Password": "पासवर्ड अपडेट करें",
   "Updating password...": "पासवर्ड अपडेट हो रहा है...",
   "Preferences": "पसंद",
+  "Microphone": "माइक्रोफ़ोन",
   "Enable Notifications": "सूचनाएं सक्षम करें",
+  "Account Privacy": "खाता गोपनीयता",
   "Background Theme": "पृष्ठभूमि थीम",
-  "Log Out": "लॉग आउट",
-  "Language": "भाषा"
+  "Language": "भाषा",
+  "Saved Posts": "सहेजे गए पोस्ट",
+  "Check Saved Posts": "सहेजे गए पोस्ट देखें",
+  "Log Out": "लॉग आउट"
 }

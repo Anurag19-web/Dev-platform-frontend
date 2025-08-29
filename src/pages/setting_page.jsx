@@ -20,7 +20,7 @@ export const Setting = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isPrivate, setIsPrivate] = useState(false);
 
-    const handleLogout = () => {
+  const handleLogout = () => {
     localStorage.removeItem("userId");
     navigate("/login");
   };
@@ -173,7 +173,15 @@ export const Setting = () => {
         {/* Preferences */}
         <section>
           <h2 className="text-xl font-semibold mb-4">{t("Preferences")}</h2>
-          <VoiceNavigator />
+          
+          {/* Voice Navigator with label */}
+          <div className="flex items-center justify-between mb-4">
+            <span className="font-medium">{t("Microphone")}</span>
+            <div className="ml-4">
+              <VoiceNavigator />
+            </div>
+          </div>
+
           {/* Notifications */}
           <div className="flex items-center justify-between mb-4">
             <span>{t("Enable Notifications")}</span>
@@ -243,7 +251,7 @@ export const Setting = () => {
         {/* Danger Zone */}
         <section>
           <motion.button
-          onClick={handleLogout}
+            onClick={handleLogout}
             className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-all duration-300"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
