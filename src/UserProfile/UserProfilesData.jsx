@@ -71,7 +71,7 @@ export const UserProfilesData = () => {
         >
           <FiSettings size={20} />
         </button>
-        <div className="absolute right-10 w-10 mt-3">
+        <div className="absolute right-10 w-10 mt-5">
           <VoiceNavigator />
         </div>
 
@@ -128,7 +128,7 @@ export const UserProfilesData = () => {
               </div>
 
               <motion.button
-                onClick={() => navigate(`/postlist/${id}`)}
+                onClick={() => navigate(`/allposts/${id}`)}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="mt-6 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition transform"

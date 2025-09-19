@@ -14,6 +14,7 @@ export const Likes = () => {
   const [posts, setPosts] = useState([]);
   const userId = JSON.parse(localStorage.getItem("userId"));
   const cleanPostId = postId?.replace(/"/g, "");
+  const currentProfilePicture = localStorage.getItem("profilePicture");
 
   const handleLogout = () => {
     localStorage.removeItem("userId");
@@ -131,7 +132,7 @@ export const Likes = () => {
         {/* Profile Icon */}
         <NavLink to="/userprofile">
           <img
-            src={posts[0]?.user?.profilePicture || "user.png"}
+            src={posts[0]?.profilePicture || currentProfilePicture}
             alt="Profile"
             className="w-10 h-10 rounded-full border-2 border-white"
           />
@@ -176,9 +177,8 @@ export const Likes = () => {
                 <motion.img
                   whileHover={{ scale: 1.1 }}
                   src={
-                    user.profileImage
-                      ? `https://dev-platform-backend.onrender.com/${user.profileImage}`
-                      : "/default-avatar.png"
+                    user.profilePicture
+                      
                   }
                   alt={user.username}
                   className="w-12 h-12 rounded-full object-cover"

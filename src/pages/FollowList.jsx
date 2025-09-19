@@ -111,7 +111,7 @@ export const FollowList = () => {
                   }
                 >
                   <img
-                    src={`https://api.dicebear.com/7.x/thumbs/svg?seed=${user.username}`}
+                    src={user.profilePicture}
                     alt="Profile"
                     className="w-12 h-12 rounded-full border-2 border-indigo-400"
                   />

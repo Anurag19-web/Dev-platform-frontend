@@ -5,7 +5,7 @@ import { FiMenu, FiSettings, FiLogOut } from "react-icons/fi";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { VoiceNavigator } from "./VoiceNavigator";
-import { useSavedPosts } from "../context/SavedPosts";
+import { useSavedPosts } from "../context/SavedPostsContext";
 
 export const HomePage = () => {
   const navigate = useNavigate();
@@ -36,7 +36,7 @@ export const HomePage = () => {
   const { savedPosts, setSavedPosts } = useSavedPosts();
   // User ID and defaults
   const userId = JSON.parse(localStorage.getItem("userId"));
-  const currentProfilePicture = "user.png"; // fallback profile picture
+  const currentProfilePicture = localStorage.getItem("profilePicture"); // fallback profile picture
 
   const BASE_URL = "https://dev-platform-backend.onrender.com";
 
@@ -345,7 +345,7 @@ const readPost = (postId, text) => {
           initial={{ y: -50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.6 }}
-          className="sticky top-0 z-20 flex flex-col md:flex-row justify-between items-center px-4 py-4 shadow-md bg-[#1f2937] gap-4"
+          className="fixed w-full top-0 z-20 flex flex-col md:flex-row justify-between items-center px-4 py-4 shadow-md bg-[#1f2937] gap-4"
         >
           <div className="flex items-center gap-4 w-full md:w-auto">
             <button onClick={() => setSidebarOpen(!sidebarOpen)} className="text-white text-2xl hover:text-indigo-400 transition">
@@ -387,7 +387,7 @@ const readPost = (postId, text) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="p-6 md:p-10"
+          className="p-6 mt-55 md:p-10 lg:mt-17"
         >
           <h2 className="text-4xl font-bold mb-4 drop-shadow-xl">Welcome to the Dev Platform</h2>
           <p className="text-white/80 max-w-xl text-lg">
@@ -448,7 +448,7 @@ const readPost = (postId, text) => {
 
                   {/* Header */}
                   <div className="flex items-center gap-4 mb-4 cursor-pointer" onClick={()=>navigate(`/userprofilesdata/${post.userId}`)}>
-                    <img src={post.profilePicture || currentProfilePicture } alt="Profile" className="w-12 h-12 rounded-full object-cover border-2 border-indigo-500" />
+                    <img src={post.profilePicture} alt="Profile" className="w-12 h-12 rounded-full object-cover border-2 border-indigo-500" />
                     <div>
                       <p className="text-white font-semibold">{post.username || "Unknown"}</p>
                       <p className="text-gray-400 text-xs">{new Date(post.createdAt).toLocaleString()}</p>

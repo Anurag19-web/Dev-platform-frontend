@@ -14,11 +14,11 @@ import { FiMenu, FiSettings, FiLogOut } from "react-icons/fi";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { VoiceNavigator } from "../pages/VoiceNavigator";
-import { useSavedPosts } from "../context/SavedPosts";
+import { useSavedPosts } from "../context/SavedPostsContext";
 
 const BASE_URL = "https://dev-platform-backend.onrender.com";
 
-export const PostCard = () => {
+export const SavedPosts = () => {
     const navigate = useNavigate();
     const { bgTheme } = useSelector((state) => state.settings);
     const { savedPosts, setSavedPosts } = useSavedPosts();
@@ -411,6 +411,13 @@ export const PostCard = () => {
                                                 >
                                                     <FaTrash size={20} />
                                                 </button>
+                                                <button
+                                            onClick={() => removeSavedPost(post._id)}
+                                            className="text-sm px-3 py-1 rounded-full bg-red-600 hover:bg-red-700 text-white shadow"
+                                            title="Remove from Saved"
+                                        >
+                                            ❌ Remove
+                                        </button>
                                             </>
                                         )}
                                     </div>
@@ -429,13 +436,6 @@ export const PostCard = () => {
                                                 {new Date(post.createdAt).toLocaleString()}
                                             </p>
                                         </div>
-                                        <button
-                                            onClick={() => removeSavedPost(post._id)}
-                                            className="text-sm px-3 py-1 rounded-full bg-red-600 hover:bg-red-700 text-white shadow"
-                                            title="Remove from Saved"
-                                        >
-                                            ❌ Remove
-                                        </button>
                                     </div>
                                     {/* Edit mode */}
                                     {editingPostId === post._id ? (
@@ -461,7 +461,7 @@ export const PostCard = () => {
                                                                     setEditImages(prev => prev.filter((_, idx) => idx !== i));
                                                                     setImagesToRemove(prev => [...prev, img._id || img.url]);
                                                                 }}
-                                                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-80 hover:opacity-100"
+                                                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full px-3 py-1 opacity-80 hover:opacity-100"
                                                                 title="Remove image"
                                                             >
                                                                 ×

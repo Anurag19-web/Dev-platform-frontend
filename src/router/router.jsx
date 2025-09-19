@@ -11,10 +11,10 @@ import { FollowList } from "../pages/FollowList";
 import { Setting } from "../pages/setting_page";
 import { VoiceNavigator } from "../pages/VoiceNavigator";
 import { CreatePost } from "../Posts/CreatePost";
-import { PostsList } from "../Posts/PostList";
 import { SearchPage } from "../pages/searchPage";
 import { Likes } from "../Posts/Likes";
-import { PostCard } from "../Posts/PostCard.jsx";
+import { AllPosts } from "../Posts/AllPosts.jsx";
+import { SavedPosts } from "../Posts/SavedPosts.jsx";
 
 export const router_page = createBrowserRouter([
     {
@@ -82,9 +82,9 @@ export const router_page = createBrowserRouter([
                 </ProtectedRoot>
     },
     {
-        path:"/postlist/:userId",
+        path:"/allposts/:userId",
         element:<ProtectedRoot>
-                <PostsList/>
+                <AllPosts/>
                 </ProtectedRoot>
     },
     {
@@ -100,9 +100,9 @@ export const router_page = createBrowserRouter([
                 </ProtectedRoot>
     },
     {
-        path:"/postcard",
+        path:"/savedposts",
         element:<ProtectedRoot>
-                <PostCard/>
+                <SavedPosts/>
                 </ProtectedRoot>
     },
 ]

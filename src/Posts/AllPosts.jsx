@@ -8,7 +8,7 @@ import { VoiceNavigator } from "../pages/VoiceNavigator";
 
 const BASE_URL = "https://dev-platform-backend.onrender.com";
 
-export const PostsList = () => {
+export const AllPosts = () => {
   const { userId } = useParams();
   const navigate = useNavigate();
   const { bgTheme } = useSelector((state) => state.settings);
@@ -26,7 +26,7 @@ export const PostsList = () => {
 
   const currentUserId = JSON.parse(localStorage.getItem("userId"));
   const currentUsername = JSON.parse(localStorage.getItem("username")) || "You";
-  const currentProfilePicture = JSON.parse(localStorage.getItem("profilePicture")) || "user.png";
+  const currentProfilePicture = localStorage.getItem("profilePicture");
 
   // Fetch posts
   const fetchPosts = async () => {
@@ -274,7 +274,7 @@ export const PostsList = () => {
           initial={{ y: -50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.6 }}
-          className="sticky top-0 z-20 flex flex-col md:flex-row justify-between items-center px-4 py-4 shadow-md bg-[#1f2937] gap-4"
+          className="fixed w-full top-0 z-20 flex flex-col md:flex-row justify-between items-center px-4 py-4 shadow-md bg-[#1f2937] gap-4"
         >
           <div className="flex items-center gap-4 w-full md:w-auto">
             <button
@@ -310,7 +310,7 @@ export const PostsList = () => {
           {/* Profile Icon */}
           <NavLink to="/userprofile">
             <img
-              src={posts[0]?.user?.profilePicture || "user.png"}
+              src={posts[0]?.profilePicture || currentProfilePicture}
               alt="Profile"
               className="w-10 h-10 rounded-full border-2 border-white"
             />
@@ -318,7 +318,7 @@ export const PostsList = () => {
         </motion.nav>
 
         {/* Posts List */}
-        <div className="p-4 space-y-6 max-w-3xl mx-auto">
+        <div className="p-4 space-y-6 max-w-3xl mx-auto mt-55 lg:mt-20">
           {/* Back Button */}
           <button
             onClick={() => navigate("/userprofile")}
@@ -340,7 +340,7 @@ export const PostsList = () => {
                 className="bg-white/10 backdrop-blur-md border border-gray-700 rounded-3xl p-6 shadow-2xl hover:shadow-3xl hover:scale-[1.02] transition-all duration-300 relative"
               >
                 {post.userId === currentUserId && (
-                  <div className="absolute top-4 right-4 flex gap-3">
+                  <div className="absolute top-7 right-4 flex gap-3">
                     <button
                       onClick={() => handleEdit(post)}
                       className="text-yellow-400 hover:text-yellow-300 transition"

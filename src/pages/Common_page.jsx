@@ -44,14 +44,6 @@ export const CommonPage = () => {
     }
   }, [blogs]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center text-2xl font-bold">
-        🚀 Loading Dev Platform...
-      </div>
-    );
-  }
-
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center text-red-400 text-xl">
@@ -61,10 +53,10 @@ export const CommonPage = () => {
   }
 
   return (
-   <div
-    className="relative min-h-screen flex flex-col text-white font-sans transition-all duration-300 overflow-x-hidden"
-    style={{ background: bgTheme }}
-  >
+    <div
+      className="relative min-h-screen flex flex-col text-white font-sans transition-all duration-300 overflow-x-hidden"
+      style={{ background: bgTheme }}
+    >
       {/* Sidebar */}
       <div
         className={`fixed top-0 left-0 h-full w-18 bg-[#1f2937] shadow-xl z-[100] transform transition-transform duration-300
@@ -89,7 +81,7 @@ export const CommonPage = () => {
           >
             <FiLogOut />
           </button>
-          <VoiceNavigator/>
+          <VoiceNavigator />
         </div>
       </div>
 
@@ -102,7 +94,7 @@ export const CommonPage = () => {
       )}
 
       {/* Header */}
-      <header className="bg-[#1f2937] shadow-md sticky top-0 z-30 w-full">
+      <header className="bg-[#1f2937] shadow-md top-0 z-30 w-full fixed">
         <div className="flex items-center justify-between px-4 py-4">
 
           {/* Sidebar Icon aligned to far left */}
@@ -132,7 +124,7 @@ export const CommonPage = () => {
       </header>
 
       {/* Hero Section */}
-      <main className="flex-grow">
+      <main className="flex-grow mt-20">
         <section className="min-h-70 flex flex-col justify-center items-center text-center px-4 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#1e1e2f] via-[#2c3e50] to-[#000c1f]">
           <motion.h2
             initial={{ opacity: 0, y: -40 }}
@@ -169,45 +161,60 @@ export const CommonPage = () => {
         {/* Blog Cards */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <h3 className="text-4xl font-bold text-center text-white mb-12">🔥 Trending Blogs</h3>
+          {
+            loading ?
+              <div className="min-h-screen flex flex-col items-center space-y-6">
+                {/* Dual Ring Loader */}
+                <div className="relative w-16 h-16">
+                  <div className="absolute top-0 left-0 w-full h-full border-4 border-transparent border-t-blue-500 rounded-full animate-spin"></div>
+                  <div className="absolute top-0 left-0 w-full h-full border-4 border-transparent border-b-purple-500 rounded-full animate-spin-slow"></div>
+                </div>
 
-          <div className="grid gap-10 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 mt-10">
-            {blogs.map((blog, index) => {
-              const {
-                id,
-                username,
-                title,
-                description,
-                userProfilePicture,
-                comments,
-                likes,
-              } = blog;
+                {/* Loading Text with Animation */}
+                <p className="text-white text-xl font-semibold animate-pulse">
+                  Fetching Data...
+                </p>
+              </div>
+              :
+              <div className="grid gap-10 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 mt-10">
+                {blogs.map((blog, index) => {
+                  const {
+                    id,
+                    username,
+                    title,
+                    description,
+                    userProfilePicture,
+                    comments,
+                    likes,
+                  } = blog;
 
-              return (
-                <motion.div
-                  key={id}
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1, duration: 0.6 }}
-                  className="bg-[#1f2937] border border-indigo-700 rounded-xl p-5 hover:scale-[1.03] transition duration-300 shadow-lg"
-                >
-                  <img
-                    src={userProfilePicture}
-                    alt={username}
-                    className="w-16 h-16 rounded-full mx-auto mb-4 border-2 border-purple-400 shadow"
-                  />
-                  <h4 className="text-xl font-semibold text-purple-300 text-center mb-2">
-                    {title}
-                  </h4>
-                  <p className="text-sm text-gray-400 text-center mb-1">by {username}</p>
-                  <p className="text-sm text-gray-200 text-center line-clamp-3">{description}</p>
-                  <div className="flex justify-center gap-4 mt-4 text-sm text-purple-200">
-                    <span>💬 {comments.length}</span>
-                    <span>❤️ {likes}</span>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
+                  return (
+                    <motion.div
+                      key={id}
+                      initial={{ opacity: 0, y: 30 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1, duration: 0.6 }}
+                      className="bg-[#1f2937] border border-indigo-700 rounded-xl p-5 hover:scale-[1.03] transition duration-300 shadow-lg"
+                    >
+                      <img
+                        src={userProfilePicture}
+                        alt={username}
+                        className="w-16 h-16 rounded-full mx-auto mb-4 border-2 border-purple-400 shadow"
+                      />
+                      <h4 className="text-xl font-semibold text-purple-300 text-center mb-2">
+                        {title}
+                      </h4>
+                      <p className="text-sm text-gray-400 text-center mb-1">by {username}</p>
+                      <p className="text-sm text-gray-200 text-center line-clamp-3">{description}</p>
+                      <div className="flex justify-center gap-4 mt-4 text-sm text-purple-200">
+                        <span>💬 {comments.length}</span>
+                        <span>❤️ {likes}</span>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+          }
         </section>
       </main>
 

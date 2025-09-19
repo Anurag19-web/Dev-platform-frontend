@@ -22,6 +22,7 @@ export const CreatePost = () => {
   const [visibility, setVisibility] = useState("public");
   const [isListening, setIsListening] = useState(false);
   const [speechLang, setSpeechLang] = useState("en-US");
+  const currentProfilePicture = localStorage.getItem("profilePicture");
 
   const recognitionRef = useRef(null);
 
@@ -101,8 +102,7 @@ export const CreatePost = () => {
     imageFile.forEach((file) => formData.append("files", file));
 
     try {
-      const res = await fetch(
-        "https://dev-platform-backend.onrender.com/api/posts",
+      const res = await fetch("https://dev-platform-backend.onrender.com/api/posts",
         {
           method: "POST",
           body: formData,
@@ -200,7 +200,7 @@ export const CreatePost = () => {
         <div className="flex items-center gap-3">
           <NavLink to="/userprofile">
             <img
-              src={"user.png"}
+              src={currentProfilePicture || "user.png"}
               alt="Profile"
               className="w-10 h-10 rounded-full border-2 border-white"
             />

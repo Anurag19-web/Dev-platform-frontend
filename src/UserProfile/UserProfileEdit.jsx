@@ -151,6 +151,7 @@ export const UserProfileEdit = () => {
                     console.log(data);
 
                     if (data.url) {
+                      localStorage.setItem("profilePicture", data.url);
                       setuserEditProfile({ ...userEditProfile, profilePicture: data.url });
                       dispatchUpdate({ profilePicture: data.url });
                     }
@@ -169,7 +170,7 @@ export const UserProfileEdit = () => {
             onChange={(e) => setuserEditProfile({ ...userEditProfile, username: e.target.value })}
           />
           <input
-            className="mt-2 text-sm bg-transparent border-b border-gray-500 text-center w-45"
+            className="mt-2 text-sm bg-transparent border-b border-gray-500 text-center w-60"
             placeholder="Email"
             value={userEditProfile.email}
             onChange={(e) => setuserEditProfile({ ...userEditProfile, email: e.target.value })}

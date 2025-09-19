@@ -239,7 +239,7 @@ export const Setting = () => {
         <section className="mt-6">
           <h2 className="text-xl font-semibold mb-4">{t("Saved Posts")}</h2>
           <motion.button
-            onClick={() => navigate("/postcard")} // navigate to saved posts page
+            onClick={() => navigate("/savedposts")} // navigate to saved posts page
             className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-all duration-300"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}

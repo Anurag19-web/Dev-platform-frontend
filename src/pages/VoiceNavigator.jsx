@@ -81,7 +81,7 @@ return (
       onClick={() => setListening((prev) => !prev)}
       whileHover={{ scale: 1.1 }}
       whileTap={{ scale: 0.95 }}
-      className="p-2 rounded-full bg-gray-800 hover:bg-blue-600 text-gray-300 relative"
+      className="p-2 rounded-full bg-gray-700/70 hover:bg-blue-600 text-gray-300 relative"
     >
       {listening ? (
         <>
@@ -89,7 +89,7 @@ return (
           <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
         </>
       ) : (
-        <FaMicrophone size={20} />
+        <FaMicrophone size={25} />
       )}
     </motion.button>
   </div>
