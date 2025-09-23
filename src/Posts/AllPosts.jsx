@@ -28,28 +28,41 @@ export const AllPosts = () => {
   const currentUsername = JSON.parse(localStorage.getItem("username")) || "You";
   const currentProfilePicture = localStorage.getItem("profilePicture");
 
+  const [userMap, setUserMap] = useState({});
+
+  // After fetching posts, extract unique userIds
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const userIds = [
+        ...new Set(
+          posts.flatMap(p => [
+            p.userId,
+            ...p.likes.map(l => l.userId),
+            ...p.comments.map(c => c.userId)
+          ])
+        )
+      ];
+      try {
+        const res = await fetch(`${BASE_URL}/api/users?ids=${userIds.join(",")}`);
+        const users = await res.json(); // array of { userId, username, profilePicture }
+        const map = Object.fromEntries(users.map(u => [u.userId, u]));
+        setUserMap(map);
+      } catch (err) {
+        console.error("Error fetching users for comments:", err);
+      }
+    };
+
+    if (posts.length) fetchUsers();
+  }, [posts]);
+
   // Fetch posts
   const fetchPosts = async () => {
     try {
       const res = await fetch(`${BASE_URL}/api/posts/user/${userId}`);
       if (!res.ok) throw new Error("Failed to fetch posts");
       const data = await res.json();
-      console.log(data);
-
-      const postsWithUser = (data.posts || []).map((post) => ({
-        ...post,
-        user: {
-          userId: post.userId,
-          username: post.username || "Unknown",
-          profilePicture: post.profilePicture || "user.png",
-        },
-        comments: (post.comments || []).map((comment) => ({
-          ...comment,
-          user: comment.user || { username: "Unknown" },
-        })),
-      }));
-
-      setPosts(postsWithUser);
+      setPosts(data.posts || []);
+      console.log(data.posts);
     } catch (err) {
       console.error(err);
       setPosts([]);
@@ -151,63 +164,44 @@ export const AllPosts = () => {
     setCommentInputs((prev) => ({ ...prev, [postId]: text }));
   };
 
+  // Submit comment
   const submitComment = async (postId) => {
     if (!currentUserId) return;
+
     const text = commentInputs[postId];
-    if (!text || text.trim() === "") return;
+    if (!text?.trim()) return;
+
     try {
       const res = await fetch(`${BASE_URL}/api/posts/${postId}/comment`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: currentUserId, text, username: currentUsername }),
+        body: JSON.stringify({ userId: currentUserId, text }), // no username
       });
       if (!res.ok) return;
+
       const result = await res.json();
-      setPosts((prev) =>
-        prev.map((p) =>
-          p._id === postId
-            ? {
-              ...p,
-              comments: (result.comments || []).map((comment) => ({
-                ...comment,
-                user:
-                  comment.user ||
-                  (comment.userId === currentUserId
-                    ? { userId: currentUserId, username: currentUsername, profilePicture: currentProfilePicture }
-                    : { username: "Unknown" }),
-              })),
-            }
-            : p
-        )
+      setPosts(prev =>
+        prev.map(p => p._id === postId ? { ...p, comments: result.comments || [] } : p)
       );
-      setCommentInputs((prev) => ({ ...prev, [postId]: "" }));
+      setCommentInputs(prev => ({ ...prev, [postId]: "" }));
     } catch (err) {
       console.error(err);
     }
   };
 
+  // Delete comment
   const deleteComment = async (postId, commentId) => {
+    if (!currentUserId) return;
+
     try {
       const res = await fetch(`${BASE_URL}/api/posts/${postId}/comment/${commentId}?userId=${currentUserId}`, {
         method: "DELETE",
       });
+      if (!res.ok) throw new Error("Failed to delete comment");
+
       const result = await res.json();
-      setPosts((prev) =>
-        prev.map((p) =>
-          p._id === postId
-            ? {
-              ...p,
-              comments: (result.comments || []).map((comment) => ({
-                ...comment,
-                user:
-                  comment.user ||
-                  (comment.userId === currentUserId
-                    ? { userId: currentUserId, username: currentUsername, profilePicture: currentProfilePicture }
-                    : { username: "Unknown" }),
-              })),
-            }
-            : p
-        )
+      setPosts(prev =>
+        prev.map(p => p._id === postId ? { ...p, comments: result.comments || [] } : p)
       );
     } catch (err) {
       console.error(err);
@@ -360,9 +354,9 @@ export const AllPosts = () => {
 
                 {/* Header */}
                 <div className="flex items-center gap-4 mb-4">
-                  <img src={post.user?.profilePicture || currentProfilePicture} alt="Profile" className="w-12 h-12 rounded-full object-cover border-2 border-indigo-500" />
+                  <img src={post.profilePicture} alt="Profile" className="w-12 h-12 rounded-full object-cover border-2 border-indigo-500" />
                   <div>
-                    <p className="text-white font-semibold">{post.user?.username || "Unknown"}</p>
+                    <p className="text-white font-semibold">{post.username || "Unknown"}</p>
                     <p className="text-gray-400 text-xs">{new Date(post.createdAt).toLocaleString()}</p>
                   </div>
                 </div>
@@ -523,18 +517,30 @@ export const AllPosts = () => {
 
                     {post.comments.length > 0 && (
                       <div className="space-y-2 max-h-40 overflow-y-auto text-sm">
-                        {post.comments.map((comment, idx) => (
-                          <div key={idx} className="flex items-center gap-2">
-                            <img src={comment.user?.profilePicture || "user.png"} alt="Comment user" className="w-6 h-6 rounded-full" />
-                            <div>
-                              <span className="font-semibold text-white">{comment.user?.username || "Unknown"}</span>{" "}
-                              <span className="text-gray-300">{comment.text}</span>
-                              {comment.user?.userId === currentUserId && (
-                                <button onClick={() => deleteComment(post._id, comment._id)} className="text-red-400 hover:text-red-600 text-xs ml-2">❌</button>
-                              )}
+                        {post.comments.map((comment, idx) => {
+                          const user = userMap[comment.userId] || {};
+                          return (
+                            <div key={idx} className="flex items-center gap-2">
+                              <img
+                                src={user.profilePicture || "user.png"}
+                                alt={user.username || "User"}
+                                className="w-6 h-6 rounded-full"
+                              />
+                              <div>
+                                <span className="font-semibold text-white">{user.username || "Unknown"}</span>{" "}
+                                <span className="text-gray-300">{comment.text}</span>
+                                {comment.userId === currentUserId && (
+                                  <button
+                                    onClick={() => deleteComment(post._id, comment._id)}
+                                    className="text-red-400 hover:text-red-600 text-xs ml-2"
+                                  >
+                                    ❌
+                                  </button>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </div>

@@ -40,6 +40,34 @@ export const HomePage = () => {
 
   const BASE_URL = "https://dev-platform-backend.onrender.com";
 
+  const [userMap, setUserMap] = useState({});
+
+  // After fetching posts, extract unique userIds
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const userIds = [
+        ...new Set(
+          posts.flatMap(p => [
+            p.userId,
+            ...p.likes.map(l => l.userId),
+            ...p.comments.map(c => c.userId)
+          ])
+        )
+      ];
+      try {
+        const res = await fetch(`${BASE_URL}/api/users?ids=${userIds.join(",")}`);
+        const users = await res.json(); // array of { userId, username, profilePicture }
+        const map = Object.fromEntries(users.map(u => [u.userId, u]));
+        setUserMap(map);
+      } catch (err) {
+        console.error("Error fetching users for comments:", err);
+      }
+    };
+
+    if (posts.length) fetchUsers();
+  }, [posts]);
+
+
   // Handle logout
   const handleLogout = () => {
     localStorage.removeItem("userId");
@@ -56,7 +84,7 @@ export const HomePage = () => {
         const data = await res.json();
         setPosts(data.posts || []);
         console.log(data.posts);
-        
+
       } catch (err) {
         console.error("Error fetching posts:", err);
       } finally {
@@ -88,7 +116,7 @@ export const HomePage = () => {
 
       const result = await res.json();
       console.log(result);
-      console.log(post._id,userId);
+      console.log(post._id, userId);
 
       setPosts((prev) =>
         prev.map((p) =>
@@ -206,60 +234,50 @@ export const HomePage = () => {
 
   const submitComment = async (postId) => {
     if (!userId) return;
+
     const text = commentInputs[postId];
-    const username = posts.username || "Unknown";
     if (!text || text.trim() === "") return;
+
     try {
       const res = await fetch(`${BASE_URL}/api/posts/${postId}/comment`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: userId, text, username }),
+        body: JSON.stringify({ userId, text }), // remove username
       });
+
       if (!res.ok) return;
-      const result = await res.json();
-      setPosts((prev) =>
-        prev.map((p) =>
+      const result = await res.json(); // backend should return updated comments
+
+      setPosts(prev =>
+        prev.map(p =>
           p._id === postId
-            ? {
-              ...p,
-              comments: (result.comments || []).map((comment) => ({
-                ...comment,
-                user:
-                  comment.user ||
-                  (comment.userId === userId
-                    ? { userId: userId, username, profilePicture: currentProfilePicture }
-                    : { username: "Unknown" }),
-              })),
-            }
+            ? { ...p, comments: result.comments || [] } // just use backend comments
             : p
         )
       );
-      setCommentInputs((prev) => ({ ...prev, [postId]: "" }));
+
+      setCommentInputs(prev => ({ ...prev, [postId]: "" }));
     } catch (err) {
       console.error(err);
     }
   };
 
   const deleteComment = async (postId, commentId) => {
+    if (!userId) return;
+
     try {
       const res = await fetch(`${BASE_URL}/api/posts/${postId}/comment/${commentId}?userId=${userId}`, {
         method: "DELETE",
       });
-      const result = await res.json();
-      setPosts((prev) =>
-        prev.map((p) =>
+
+      if (!res.ok) throw new Error("Failed to delete comment");
+
+      const result = await res.json(); // backend returns updated comments array
+
+      setPosts(prev =>
+        prev.map(p =>
           p._id === postId
-            ? {
-              ...p,
-              comments: (result.comments || []).map((comment) => ({
-                ...comment,
-                user:
-                  comment.user ||
-                  (comment.userId === userId
-                    ? { userId: userId, username: currentUsername, profilePicture: currentProfilePicture }
-                    : { username: "Unknown" }),
-              })),
-            }
+            ? { ...p, comments: result.comments || [] } // just use backend comments
             : p
         )
       );
@@ -268,51 +286,51 @@ export const HomePage = () => {
     }
   };
 
-const readPost = (postId, text) => {
-  if (!("speechSynthesis" in window)) {
-    alert("Text-to-speech not supported.");
-    return;
-  }
-
-  if (readingPostId === postId) {
-    speechSynthesis.cancel();
-    setReadingPostId(null);
-    return;
-  }
-
-  speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(text);
-
-  // Detect script
-  const isHindi = /[\u0900-\u097F]/.test(text);
-  const isGujarati = /[\u0A80-\u0AFF]/.test(text);
-
-  // Pick a voice dynamically
-  const voices = speechSynthesis.getVoices();
-
-  if (isGujarati) {
-    utterance.lang = "gu-IN";
-    // Try to find a Gujarati voice
-    const guVoice = voices.find(v => v.lang.toLowerCase().includes("gu"));
-    if (guVoice) utterance.voice = guVoice;
-    else {
-      // fallback to Hindi if Gujarati voice unavailable
-      utterance.lang = "hi-IN";
+  const readPost = (postId, text) => {
+    if (!("speechSynthesis" in window)) {
+      alert("Text-to-speech not supported.");
+      return;
     }
-  } else if (isHindi) {
-    utterance.lang = "hi-IN";
-  } else {
-    utterance.lang = "en-US";
-  }
 
-  utterance.rate = 1;
-  utterance.pitch = 1;
+    if (readingPostId === postId) {
+      speechSynthesis.cancel();
+      setReadingPostId(null);
+      return;
+    }
 
-  utterance.onend = () => setReadingPostId(null);
+    speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
 
-  setReadingPostId(postId);
-  speechSynthesis.speak(utterance);
-};
+    // Detect script
+    const isHindi = /[\u0900-\u097F]/.test(text);
+    const isGujarati = /[\u0A80-\u0AFF]/.test(text);
+
+    // Pick a voice dynamically
+    const voices = speechSynthesis.getVoices();
+
+    if (isGujarati) {
+      utterance.lang = "gu-IN";
+      // Try to find a Gujarati voice
+      const guVoice = voices.find(v => v.lang.toLowerCase().includes("gu"));
+      if (guVoice) utterance.voice = guVoice;
+      else {
+        // fallback to Hindi if Gujarati voice unavailable
+        utterance.lang = "hi-IN";
+      }
+    } else if (isHindi) {
+      utterance.lang = "hi-IN";
+    } else {
+      utterance.lang = "en-US";
+    }
+
+    utterance.rate = 1;
+    utterance.pitch = 1;
+
+    utterance.onend = () => setReadingPostId(null);
+
+    setReadingPostId(postId);
+    speechSynthesis.speak(utterance);
+  };
 
   const handleShare = (post) => {
     const postUrl = `${window.location.origin}/posts/${post._id}`;
@@ -375,7 +393,7 @@ const readPost = (postId, text) => {
           {/* Profile Icon */}
           <NavLink to="/userprofile">
             <img
-              src={posts[0]?.profilePicture || currentProfilePicture}
+              src={currentProfilePicture}
               alt="Profile"
               className="w-10 h-10 rounded-full border-2 border-white"
             />
@@ -447,7 +465,7 @@ const readPost = (postId, text) => {
                   </div>
 
                   {/* Header */}
-                  <div className="flex items-center gap-4 mb-4 cursor-pointer" onClick={()=>navigate(`/userprofilesdata/${post.userId}`)}>
+                  <div className="flex items-center gap-4 mb-4 cursor-pointer" onClick={() => navigate(`/userprofilesdata/${post.userId}`)}>
                     <img src={post.profilePicture} alt="Profile" className="w-12 h-12 rounded-full object-cover border-2 border-indigo-500" />
                     <div>
                       <p className="text-white font-semibold">{post.username || "Unknown"}</p>
@@ -596,20 +614,23 @@ const readPost = (postId, text) => {
                       </div>
                       {post.comments.length > 0 && (
                         <div className="space-y-2 max-h-40 overflow-y-auto text-sm">
-                          {post.comments.map((comment, idx) => (
-                            <div key={idx} className="flex items-center gap-2">
-                              <img src={comment.profilePicture || "user.png"} alt="Comment user" className="w-6 h-6 rounded-full" />
-                              <div>
-                                <span className="font-semibold text-white">{comment.username || "Unknown"}</span>{" "}
-                                <span className="text-gray-300">{comment.text}</span>
-                                {comment.userId === userId && (
-                                  <button onClick={() => deleteComment(post._id, comment._id)} className="text-red-400 hover:text-red-600 text-xs ml-2">
-                                    ❌
-                                  </button>
-                                )}
+                          {post.comments.map((comment, idx) => {
+                            const commentUser = comment.user || userMap[comment.userId] || { username: "Unknown", profilePicture: "user.png" };
+                            return (
+                              <div key={idx} className="flex items-center gap-2">
+                                <img src={commentUser.profilePicture} alt="Comment user" className="w-6 h-6 rounded-full" />
+                                <div>
+                                  <span className="font-semibold text-white">{commentUser.username}</span>{" "}
+                                  <span className="text-gray-300">{comment.text}</span>
+                                  {comment.userId === userId && (
+                                    <button onClick={() => deleteComment(post._id, comment._id)} className="text-red-400 hover:text-red-600 text-xs ml-2">
+                                      ❌
+                                    </button>
+                                  )}
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       )}
                     </div>

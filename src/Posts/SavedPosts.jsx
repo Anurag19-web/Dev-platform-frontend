@@ -35,7 +35,34 @@ export const SavedPosts = () => {
     const [newImages, setNewImages] = useState([]);
 
     const userId = JSON.parse(localStorage.getItem("userId"));
-    const currentProfilePicture = "user.png";
+    const currentProfilePicture = localStorage.getItem("profilePicture");
+
+    const [userMap, setUserMap] = useState({});
+
+    // After fetching posts, extract unique userIds
+    useEffect(() => {
+        const fetchUsers = async () => {
+            const userIds = [
+                ...new Set(
+                    posts.flatMap(p => [
+                        p.userId,
+                        ...p.likes.map(l => l.userId),
+                        ...p.comments.map(c => c.userId)
+                    ])
+                )
+            ];
+            try {
+                const res = await fetch(`${BASE_URL}/api/users?ids=${userIds.join(",")}`);
+                const users = await res.json(); // array of { userId, username, profilePicture }
+                const map = Object.fromEntries(users.map(u => [u.userId, u]));
+                setUserMap(map);
+            } catch (err) {
+                console.error("Error fetching users for comments:", err);
+            }
+        };
+
+        if (posts.length) fetchUsers();
+    }, [posts]);
 
     useEffect(() => {
         (async () => {
@@ -43,6 +70,8 @@ export const SavedPosts = () => {
                 const res = await fetch(`${BASE_URL}/api/save/${userId}/saved`);
                 if (!res.ok) throw new Error("Failed to fetch posts");
                 const data = await res.json();
+                console.log(data);
+
                 setPosts(data || []);
             } catch (err) {
                 console.error("Error fetching posts:", err);
@@ -170,60 +199,50 @@ export const SavedPosts = () => {
 
     const submitComment = async (postId) => {
         if (!userId) return;
+
         const text = commentInputs[postId];
-        const username = posts?.user?.username || "Unknown";
         if (!text || text.trim() === "") return;
+
         try {
             const res = await fetch(`${BASE_URL}/api/posts/${postId}/comment`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ userId, text, username }),
+                body: JSON.stringify({ userId, text }), // remove username
             });
+
             if (!res.ok) return;
-            const result = await res.json();
-            setPosts((prev) =>
-                prev.map((p) =>
+            const result = await res.json(); // backend should return updated comments
+
+            setPosts(prev =>
+                prev.map(p =>
                     p._id === postId
-                        ? {
-                            ...p,
-                            comments: (result.comments || []).map((comment) => ({
-                                ...comment,
-                                user:
-                                    comment.user ||
-                                    (comment.userId === userId
-                                        ? { userId: userId, username, profilePicture: currentProfilePicture }
-                                        : { username: "Unknown" }),
-                            })),
-                        }
+                        ? { ...p, comments: result.comments || [] } // just use backend comments
                         : p
                 )
             );
-            setCommentInputs((prev) => ({ ...prev, [postId]: "" }));
+
+            setCommentInputs(prev => ({ ...prev, [postId]: "" }));
         } catch (err) {
             console.error(err);
         }
     };
 
     const deleteComment = async (postId, commentId) => {
+        if (!userId) return;
+
         try {
             const res = await fetch(`${BASE_URL}/api/posts/${postId}/comment/${commentId}?userId=${userId}`, {
                 method: "DELETE",
             });
-            const result = await res.json();
-            setPosts((prev) =>
-                prev.map((p) =>
+
+            if (!res.ok) throw new Error("Failed to delete comment");
+
+            const result = await res.json(); // backend returns updated comments array
+
+            setPosts(prev =>
+                prev.map(p =>
                     p._id === postId
-                        ? {
-                            ...p,
-                            comments: (result.comments || []).map((comment) => ({
-                                ...comment,
-                                user:
-                                    comment.user ||
-                                    (comment.userId === userId
-                                        ? { userId: userId, username: currentUsername, profilePicture: currentProfilePicture }
-                                        : { username: "Unknown" }),
-                            })),
-                        }
+                        ? { ...p, comments: result.comments || [] } // just use backend comments
                         : p
                 )
             );
@@ -356,7 +375,7 @@ export const SavedPosts = () => {
 
                     <NavLink to="/userprofile">
                         <img
-                            src={posts[0]?.profilePicture || currentProfilePicture}
+                            src={currentProfilePicture}
                             alt="Profile"
                             className="w-10 h-10 rounded-full border-2 border-white"
                         />
@@ -412,19 +431,19 @@ export const SavedPosts = () => {
                                                     <FaTrash size={20} />
                                                 </button>
                                                 <button
-                                            onClick={() => removeSavedPost(post._id)}
-                                            className="text-sm px-3 py-1 rounded-full bg-red-600 hover:bg-red-700 text-white shadow"
-                                            title="Remove from Saved"
-                                        >
-                                            ❌ Remove
-                                        </button>
+                                                    onClick={() => removeSavedPost(post._id)}
+                                                    className="text-sm px-3 py-1 rounded-full bg-red-600 hover:bg-red-700 text-white shadow"
+                                                    title="Remove from Saved"
+                                                >
+                                                    ❌ Remove
+                                                </button>
                                             </>
                                         )}
                                     </div>
 
                                     <div className="flex items-center gap-4 mb-4">
                                         <img
-                                            src={post.profilePicture || currentProfilePicture}
+                                            src={post.profilePicture}
                                             alt="Profile"
                                             className="w-12 h-12 rounded-full object-cover border-2 border-indigo-500"
                                         />
@@ -592,18 +611,23 @@ export const SavedPosts = () => {
 
                                             {post.comments.length > 0 && (
                                                 <div className="space-y-2 max-h-40 overflow-y-auto text-sm">
-                                                    {post.comments.map((comment, idx) => (
-                                                        <div key={idx} className="flex items-center gap-2">
-                                                            <img src={comment.profilePicture || "user.png"} alt="Comment user" className="w-6 h-6 rounded-full" />
-                                                            <div>
-                                                                <span className="font-semibold text-white">{comment.username || "Unknown"}</span>{" "}
-                                                                <span className="text-gray-300">{comment.text}</span>
-                                                                {comment.userId === userId && (
-                                                                    <button onClick={() => deleteComment(post._id, comment._id)} className="text-red-400 hover:text-red-600 text-xs ml-2">❌</button>
-                                                                )}
+                                                    {post.comments.map((comment, idx) => {
+                                                        const commentUser = comment.user || userMap[comment.userId] || { username: "Unknown", profilePicture: "user.png" };
+                                                        return (
+                                                            <div key={idx} className="flex items-center gap-2">
+                                                                <img src={commentUser.profilePicture} alt="Comment user" className="w-6 h-6 rounded-full" />
+                                                                <div>
+                                                                    <span className="font-semibold text-white">{commentUser.username}</span>{" "}
+                                                                    <span className="text-gray-300">{comment.text}</span>
+                                                                    {comment.userId === userId && (
+                                                                        <button onClick={() => deleteComment(post._id, comment._id)} className="text-red-400 hover:text-red-600 text-xs ml-2">
+                                                                            ❌
+                                                                        </button>
+                                                                    )}
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                    ))}
+                                                        );
+                                                    })}
                                                 </div>
                                             )}
                                         </div>

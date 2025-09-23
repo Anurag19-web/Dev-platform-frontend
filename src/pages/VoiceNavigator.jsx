@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { FaMicrophone, FaMicrophoneSlash } from "react-icons/fa";
-import { toggleNotifications } from "../slices/SettingSlice";
 import { useDispatch } from "react-redux";
 
 export const VoiceNavigator = () => {
@@ -43,14 +42,8 @@ export const VoiceNavigator = () => {
                 navigate("/userprofile");
             } else if (transcript === "profiles") {
                 navigate("/userprofilesdata");
-            } else if (transcript === "notification on"){
-                dispatch(toggleNotifications());
-                setTimeout(() => setListening(false), 100);
-                } else if (transcript === "notification off"){
-                dispatch(!toggleNotifications());
-                setTimeout(() => setListening(false), 100);
-            } else if (transcript === "back"){
-                navigate(-1) 
+            } else if (transcript === "back") {
+                navigate(-1)
             } else {
                 setMessage(`Unrecognized command: "${transcript}"`);
             }
@@ -74,26 +67,26 @@ export const VoiceNavigator = () => {
             recognition.onerror = null;
         };
     }, [listening, navigate]);
-return (
-  <div className="voice-navigator flex flex-col items-center gap-1">
-    <motion.button
-      type="button"
-      onClick={() => setListening((prev) => !prev)}
-      whileHover={{ scale: 1.1 }}
-      whileTap={{ scale: 0.95 }}
-      className="p-2 rounded-full bg-gray-700/70 hover:bg-blue-600 text-gray-300 relative"
-    >
-      {listening ? (
-        <>
-          <FaMicrophoneSlash size={20} />
-          <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-        </>
-      ) : (
-        <FaMicrophone size={25} />
-      )}
-    </motion.button>
-  </div>
-);
+    return (
+        <div className="voice-navigator flex flex-col items-center gap-1">
+            <motion.button
+                type="button"
+                onClick={() => setListening((prev) => !prev)}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                className="p-2 rounded-full bg-gray-700/70 hover:bg-blue-600 text-gray-300 relative"
+            >
+                {listening ? (
+                    <>
+                        <FaMicrophoneSlash size={20} />
+                        <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                    </>
+                ) : (
+                    <FaMicrophone size={25} />
+                )}
+            </motion.button>
+        </div>
+    );
 
 
 };

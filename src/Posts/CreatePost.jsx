@@ -19,7 +19,6 @@ export const CreatePost = () => {
   const [imageFile, setImageFile] = useState([]);
   const [filePreview, setFilePreview] = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [visibility, setVisibility] = useState("public");
   const [isListening, setIsListening] = useState(false);
   const [speechLang, setSpeechLang] = useState("en-US");
   const currentProfilePicture = localStorage.getItem("profilePicture");
@@ -120,8 +119,6 @@ export const CreatePost = () => {
       setContent("");
       setImageFile([]);
       setFilePreview([]);
-      setVisibility("public");
-
       navigate("/home");
     } catch (err) {
       console.error("Error creating post:", err);
@@ -322,26 +319,6 @@ export const CreatePost = () => {
             ))}
           </div>
         )}
-
-        {/* Visibility */}
-        <div className="flex items-center gap-3 mb-4">
-          <label className="flex items-center gap-2 text-gray-300">
-            {visibility === "public" ? (
-              <Globe size={18} />
-            ) : (
-              <Lock size={18} />
-            )}
-            Visibility:
-          </label>
-          <select
-            value={visibility}
-            onChange={(e) => setVisibility(e.target.value)}
-            className="p-2 rounded-xl bg-gray-800 text-white border border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 transition-all"
-          >
-            <option value="public">Public</option>
-            <option value="private">Private</option>
-          </select>
-        </div>
 
         {/* Submit */}
         <button

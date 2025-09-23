@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { updatePassword, clearMessages, setTheme, setLanguage, toggleNotifications } from "../slices/SettingSlice";
+import { updatePassword, clearMessages, setTheme, setLanguage } from "../slices/SettingSlice";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
@@ -180,21 +180,6 @@ export const Setting = () => {
             <div className="ml-4">
               <VoiceNavigator />
             </div>
-          </div>
-
-          {/* Notifications */}
-          <div className="flex items-center justify-between mb-4">
-            <span>{t("Enable Notifications")}</span>
-            <motion.button
-              onClick={() => dispatch(toggleNotifications())}
-              className={`px-4 py-1 rounded-full font-medium transition-all duration-300 ${notifications
-                ? "bg-green-500 text-white"
-                : "bg-gray-300 text-black"
-                }`}
-              whileHover={{ scale: 1.05 }}
-            >
-              {notifications ? t("On") : t("Off")}
-            </motion.button>
           </div>
 
           {/* Account Privacy */}

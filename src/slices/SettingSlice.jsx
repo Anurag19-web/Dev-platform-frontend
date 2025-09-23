@@ -39,7 +39,6 @@ const settingSlice = createSlice({
     errorMessage: null,
     bgTheme: savedTheme,
     language: savedLanguage,
-    notifications: true,
   },
   reducers: {
     clearMessages: (state) => {
@@ -54,9 +53,6 @@ const settingSlice = createSlice({
     setLanguage: (state, action) => {
       state.language = action.payload;
       localStorage.setItem("language", action.payload);
-    },
-    toggleNotifications: (state) => {
-      state.notifications = !state.notifications;
     },
   },
   extraReducers: (builder) => {
@@ -77,5 +73,5 @@ const settingSlice = createSlice({
   },
 });
 
-export const { clearMessages, setTheme, setLanguage, toggleNotifications } = settingSlice.actions;
+export const { clearMessages, setTheme, setLanguage } = settingSlice.actions;
 export default settingSlice.reducer;
