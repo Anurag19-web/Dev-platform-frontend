@@ -96,8 +96,6 @@ export const CreatePost = () => {
     const formData = new FormData();
     formData.append("userId", userId);
     formData.append("content", content);
-    formData.append("visibility", visibility);
-
     imageFile.forEach((file) => formData.append("files", file));
 
     try {

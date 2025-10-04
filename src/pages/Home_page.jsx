@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { FaPlusCircle, FaSave, FaSearch, FaThumbsUp, FaTrash, FaComment, FaTimes } from "react-icons/fa";
+import { FaPlusCircle, FaSave, FaSearch, FaThumbsUp, FaTrash, FaComment, FaTimes, FaArrowRight, FaArrowLeft } from "react-icons/fa";
 import { FiMenu, FiSettings, FiLogOut } from "react-icons/fi";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
@@ -29,6 +29,7 @@ export const HomePage = () => {
   const [imagesToRemove, setImagesToRemove] = useState([]);
   const [newImages, setNewImages] = useState([]);
   const [showShareMenu, setShowShareMenu] = useState(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState({});
 
   // Redux selector for theme
   const { bgTheme } = useSelector((state) => state.settings);
@@ -332,22 +333,6 @@ export const HomePage = () => {
     speechSynthesis.speak(utterance);
   };
 
-  const handleShare = (post) => {
-    const postUrl = `${window.location.origin}/posts/${userId}`;
-    if (navigator.share) {
-      navigator.share({
-        title: "Check out this post!",
-        text: post.content,
-        url: postUrl,
-      })
-        .then(() => console.log("Shared successfully"))
-        .catch((err) => console.error("Error sharing:", err));
-    } else {
-      navigator.clipboard.writeText(postUrl);
-      alert("Post URL copied! (Sharing not supported on this browser)");
-    }
-  };
-
   return (
     <div className="relative min-h-screen flex text-white overflow-hidden" style={{ background: bgTheme }}>
       {/* Sidebar */}
@@ -567,20 +552,56 @@ export const HomePage = () => {
                     </div>
                   ) : (
                     <div>
-                      <p className="text-gray-200 text-base leading-relaxed mb-4">{post.content}</p>
+                      <p className="text-gray-200 text-base leading-relaxed mb-4">
+                        {post.content}
+                      </p>
                       {Array.isArray(post.images) && post.images.length > 0 && (
-                        <div className="grid grid-cols-2 gap-2">
-                          {post.images.map((img, i) => (
-                            <motion.img
-                              key={i}
-                              src={img.url}
-                              alt={`Post image ${i}`}
-                              className="rounded-xl w-full object-cover max-h-96"
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 1 }}
-                              transition={{ duration: 0.3, delay: i * 0.1 }}
-                            />
-                          ))}
+                        <div className="relative w-full h-85 overflow-hidden rounded-xl">
+                          <motion.img
+                            key={post.images[currentImageIndex[post._id] || 0].url}
+                            src={post.images[currentImageIndex[post._id] || 0].url}
+                            alt={`Post image`}
+                            className="w-full h-full object-cover"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ duration: 0.3 }}
+                          />
+
+                          {/* Left arrow */}
+                          {post.images.length > 1 && (
+                            <button
+                              onClick={() =>
+                                setCurrentImageIndex((prev) => ({
+                                  ...prev,
+                                  [post._id]:
+                                    (prev[post._id] || 0) === 0
+                                      ? post.images.length - 1
+                                      : (prev[post._id] || 0) - 1,
+                                }))
+                              }
+                              className="absolute top-1/2 left-2 -translate-y-1/2 flex items-center justify-center w-10 h-10 bg-black/50 rounded-full text-white hover:bg-black/70 transition"
+                            >
+                              <FaArrowLeft size={20} />
+                            </button>
+                          )}
+
+                          {/* Right arrow */}
+                          {post.images.length > 1 && (
+                            <button
+                              onClick={() =>
+                                setCurrentImageIndex((prev) => ({
+                                  ...prev,
+                                  [post._id]:
+                                    (prev[post._id] || 0) === post.images.length - 1
+                                      ? 0
+                                      : (prev[post._id] || 0) + 1,
+                                }))
+                              }
+                              className="absolute top-1/2 right-2 -translate-y-1/2 flex items-center justify-center w-10 h-10 bg-black/50 rounded-full text-white hover:bg-black/70 transition"
+                            >
+                              <FaArrowRight size={20} />
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>
@@ -603,11 +624,12 @@ export const HomePage = () => {
                     <button onClick={() => readPost(post._id, `${post.username || "Someone"} says: ${post.content}`)} className={`flex items-center gap-1 ${readingPostId === post._id ? "text-red-400" : "text-gray-400 hover:text-yellow-400"}`}>
                       {readingPostId === post._id ? "⏹ Stop" : "🔊 Read"}
                     </button>
+
                     {/* Action buttons */}
                     <div className="flex gap-4 mt-2">
                       <button
                         onClick={() =>
-                          setShowShareMenu(showShareMenu === post.userId ? null : post.userId)
+                          setShowShareMenu(showShareMenu === post._id ? null : post._id)
                         }
                         className="flex items-center gap-1 text-gray-400 hover:text-purple-400 transition"
                       >
@@ -616,7 +638,7 @@ export const HomePage = () => {
                     </div>
 
                     {/* ✅ Share menu */}
-                    {showShareMenu === post.userId && (
+                    {showShareMenu === post._id && (
                       <div className="absolute right-10 top-10 bg-gray-800 rounded-lg shadow-lg p-3 flex flex-col gap-2 z-50">
                         {/* WhatsApp */}
                         <a
