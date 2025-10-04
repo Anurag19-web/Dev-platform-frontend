@@ -132,7 +132,7 @@ export const Likes = () => {
         {/* Profile Icon */}
         <NavLink to="/userprofile">
           <img
-            src={posts[0]?.profilePicture || currentProfilePicture}
+            src={currentProfilePicture}
             alt="Profile"
             className="w-10 h-10 rounded-full border-2 border-white"
           />

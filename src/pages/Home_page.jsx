@@ -28,6 +28,7 @@ export const HomePage = () => {
   const [editImages, setEditImages] = useState([]);
   const [imagesToRemove, setImagesToRemove] = useState([]);
   const [newImages, setNewImages] = useState([]);
+  const [showShareMenu, setShowShareMenu] = useState(null);
 
   // Redux selector for theme
   const { bgTheme } = useSelector((state) => state.settings);
@@ -36,7 +37,7 @@ export const HomePage = () => {
   const { savedPosts, setSavedPosts } = useSavedPosts();
   // User ID and defaults
   const userId = JSON.parse(localStorage.getItem("userId"));
-  const currentProfilePicture = localStorage.getItem("profilePicture"); // fallback profile picture
+  const currentProfilePicture = localStorage.getItem("profilePicture");
 
   const BASE_URL = "https://dev-platform-backend.onrender.com";
 
@@ -66,7 +67,6 @@ export const HomePage = () => {
 
     if (posts.length) fetchUsers();
   }, [posts]);
-
 
   // Handle logout
   const handleLogout = () => {
@@ -333,9 +333,19 @@ export const HomePage = () => {
   };
 
   const handleShare = (post) => {
-    const postUrl = `${window.location.origin}/posts/${post._id}`;
-    navigator.clipboard.writeText(postUrl);
-    alert("Post URL copied!");
+    const postUrl = `${window.location.origin}/posts/${userId}`;
+    if (navigator.share) {
+      navigator.share({
+        title: "Check out this post!",
+        text: post.content,
+        url: postUrl,
+      })
+        .then(() => console.log("Shared successfully"))
+        .catch((err) => console.error("Error sharing:", err));
+    } else {
+      navigator.clipboard.writeText(postUrl);
+      alert("Post URL copied! (Sharing not supported on this browser)");
+    }
   };
 
   return (
@@ -593,9 +603,69 @@ export const HomePage = () => {
                     <button onClick={() => readPost(post._id, `${post.username || "Someone"} says: ${post.content}`)} className={`flex items-center gap-1 ${readingPostId === post._id ? "text-red-400" : "text-gray-400 hover:text-yellow-400"}`}>
                       {readingPostId === post._id ? "⏹ Stop" : "🔊 Read"}
                     </button>
-                    <button onClick={() => handleShare(post)} className="flex items-center gap-1 text-gray-400 hover:text-purple-400 transition">
-                      🔄 <span>Share</span>
-                    </button>
+                    {/* Action buttons */}
+                    <div className="flex gap-4 mt-2">
+                      <button
+                        onClick={() =>
+                          setShowShareMenu(showShareMenu === post.userId ? null : post.userId)
+                        }
+                        className="flex items-center gap-1 text-gray-400 hover:text-purple-400 transition"
+                      >
+                        🔄 <span>Share</span>
+                      </button>
+                    </div>
+
+                    {/* ✅ Share menu */}
+                    {showShareMenu === post.userId && (
+                      <div className="absolute right-10 top-10 bg-gray-800 rounded-lg shadow-lg p-3 flex flex-col gap-2 z-50">
+                        {/* WhatsApp */}
+                        <a
+                          href={`https://wa.me/?text=${encodeURIComponent(
+                            `${window.location.origin}/allposts/${post.userId}`
+                          )}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-green-400 hover:underline"
+                        >
+                          📲 WhatsApp
+                        </a>
+
+                        {/* Gmail */}
+                        <button
+                          onClick={() => {
+                            const link = `${window.location.origin}/allposts/${post.userId}`;
+
+                            const isMobile = /Mobi|Android|iPhone/i.test(navigator.userAgent);
+
+                            if (isMobile) {
+                              // 📱 Mobile → opens default Gmail app (via mailto)
+                              window.location.href = `mailto:?subject=Check this post&body=${encodeURIComponent(link)}`;
+                            } else {
+                              // 💻 Desktop → opens Gmail in browser
+                              window.open(
+                                `https://mail.google.com/mail/?view=cm&fs=1&to=&su=Check this post&body=${encodeURIComponent(link)}`,
+                                "_blank"
+                              );
+                            }
+                          }}
+                          className="text-blue-400 hover:underline"
+                        >
+                          📧 Gmail
+                        </button>
+
+                        {/* Copy Link */}
+                        <button
+                          onClick={() =>
+                            navigator.clipboard.writeText(
+                              `${window.location.origin}/allposts/${post.userId}`
+                            )
+                          }
+                          className="text-gray-300 hover:text-white"
+                        >
+                          📋 Copy Link
+                        </button>
+                      </div>
+                    )}
                   </div>
                   {/* Comment input and comments UI */}
                   {commentBoxOpenFor === post._id && (
