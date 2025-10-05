@@ -59,7 +59,7 @@ export const UserProfilesData = () => {
         className="max-w-4xl mx-auto bg-[#1f2937] bg-opacity-90 p-10 rounded-2xl shadow-2xl relative"
       >
         <button
-          onClick={() => navigate("/home")}
+          onClick={() => navigate(-1)}
           className="bg-gray-700/70 px-4 py-2 rounded-lg hover:bg-gray-600 transition shadow-md"
         >
           ← Back

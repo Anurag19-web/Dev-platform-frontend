@@ -382,7 +382,7 @@ export const SavedPosts = () => {
                 {/* Posts List */}
                 <div className="p-4 space-y-6 max-w-xl mx-auto">
                     <button
-                        onClick={() => navigate("/userprofile")}
+                        onClick={() => navigate(-1)}
                         className="flex items-center gap-2 text-white bg-gray-800/70 hover:bg-gray-700 px-4 py-2 rounded-full shadow-md transition"
                     >
                         <FaArrowLeft /> Back
@@ -438,9 +438,9 @@ export const SavedPosts = () => {
                                         )}
                                     </div>
 
-                                    <div className="flex items-center gap-4 mb-4">
+                                    <div className="flex items-center gap-4 mb-4 cursor-pointer" onClick={() => navigate(`/userprofilesdata/${post.userId}`)}>
                                         <img
-                                            src={post.profilePicture}
+                                            src={post.profilePicture || "user.png"}
                                             alt="Profile"
                                             className="w-12 h-12 rounded-full object-cover border-2 border-indigo-500"
                                         />
@@ -706,9 +706,11 @@ export const SavedPosts = () => {
                                                         const commentUser = comment.user || userMap[comment.userId] || { username: "Unknown", profilePicture: "user.png" };
                                                         return (
                                                             <div key={idx} className="flex items-center gap-2">
-                                                                <img src={commentUser.profilePicture} alt="Comment user" className="w-6 h-6 rounded-full" />
+                                                                <img src={commentUser.profilePicture} alt="Comment user" className="w-6 h-6 rounded-full cursor-pointer" 
+                                                                onClick={()=>navigate(`/userprofilesdata/${comment.userId}`)}/>
                                                                 <div>
-                                                                    <span className="font-semibold text-white">{commentUser.username}</span>{" "}
+                                                                    <span className="font-semibold text-white cursor-pointer"
+                                                                     onClick={()=>navigate(`/userprofilesdata/${comment.userId}`)}>{commentUser.username}</span>{" "}
                                                                     <span className="text-gray-300">{comment.text}</span>
                                                                     {comment.userId === userId && (
                                                                         <button onClick={() => deleteComment(post._id, comment._id)} className="text-red-400 hover:text-red-600 text-xs ml-2">

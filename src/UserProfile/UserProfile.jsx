@@ -171,20 +171,42 @@ export const UserProfile = () => {
           <div className="flex justify-center gap-10 mt-6 flex-wrap">
             {userProfile.github && (
               <div className="flex flex-col items-center hover:scale-105 transition">
-                <FaGithub className="text-3xl" />
-                <span className="mt-1 font-medium">GitHub</span>
-                <span className="text-xs break-all text-gray-400">
-                  {userProfile.github}
-                </span>
+                <a
+                  href={
+                    userProfile.github.startsWith("http")
+                      ? userProfile.github
+                      : `https://${userProfile.github}`
+                  }
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-col items-center hover:scale-110 transition transform"
+                >
+                  <FaGithub className="text-3xl" />
+                  <span className="mt-1 font-medium">GitHub</span>
+                  <span className="text-xs break-all text-gray-400">
+                    {userProfile.github}
+                  </span>
+                </a>
               </div>
             )}
             {userProfile.linkedin && (
               <div className="flex flex-col items-center hover:scale-105 transition">
-                <FaLinkedin className="text-3xl text-blue-500" />
-                <span className="mt-1 font-medium">LinkedIn</span>
-                <span className="text-xs break-all text-gray-400">
-                  {userProfile.linkedin}
-                </span>
+                <a
+                  href={
+                    userProfile.linkedin.startsWith("http")
+                      ? userProfile.linkedin
+                      : `https://${userProfile.linkedin}`
+                  }
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-col items-center hover:scale-110 transition transform"
+                >
+                  <FaLinkedin className="text-3xl text-blue-500" />
+                  <span className="mt-1 font-medium">LinkedIn</span>
+                  <span className="text-xs break-all text-gray-400">
+                    {userProfile.linkedin}
+                  </span>
+                </a>
               </div>
             )}
           </div>

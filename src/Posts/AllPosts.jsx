@@ -26,7 +26,6 @@ export const AllPosts = () => {
   const [showShareMenu, setShowShareMenu] = useState(null);
   const [currentImageIndex, setCurrentImageIndex] = useState({});
 
-
   const currentUserId = JSON.parse(localStorage.getItem("userId"));
   const currentUsername = JSON.parse(localStorage.getItem("username")) || "You";
   const currentProfilePicture = localStorage.getItem("profilePicture");
@@ -350,7 +349,7 @@ export const AllPosts = () => {
                 )}
 
                 {/* Header */}
-                <div className="flex items-center gap-4 mb-4">
+                <div className="flex items-center gap-4 mb-4 cursor-pointer" onClick={() => navigate(`/userprofilesdata/${post.userId}`)}>
                   <img src={post.profilePicture} alt="Profile" className="w-12 h-12 rounded-full object-cover border-2 border-indigo-500" />
                   <div>
                     <p className="text-white font-semibold">{post.username || "Unknown"}</p>
@@ -612,10 +611,12 @@ export const AllPosts = () => {
                               <img
                                 src={user.profilePicture || "user.png"}
                                 alt={user.username || "User"}
-                                className="w-6 h-6 rounded-full"
+                                className="w-6 h-6 rounded-full cursor-pointer"
+                                onClick={()=>navigate(`/userprofilesdata/${comment.userId}`)}
                               />
                               <div>
-                                <span className="font-semibold text-white">{user.username || "Unknown"}</span>{" "}
+                                <span className="font-semibold text-white cursor-pointer"
+                                 onClick={()=> navigate(`/userprofilesdata/${comment.userId}`)}>{user.username || "Unknown"}</span>{" "}
                                 <span className="text-gray-300">{comment.text}</span>
                                 {comment.userId === currentUserId && (
                                   <button

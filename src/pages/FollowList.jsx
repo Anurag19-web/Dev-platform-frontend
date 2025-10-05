@@ -111,7 +111,7 @@ export const FollowList = () => {
                   }
                 >
                   <img
-                    src={user.profilePicture}
+                    src={user.profilePicture || "user.png"}
                     alt="Profile"
                     className="w-12 h-12 rounded-full border-2 border-indigo-400"
                   />

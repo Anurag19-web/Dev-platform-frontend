@@ -461,7 +461,7 @@ export const HomePage = () => {
 
                   {/* Header */}
                   <div className="flex items-center gap-4 mb-4 cursor-pointer" onClick={() => navigate(`/userprofilesdata/${post.userId}`)}>
-                    <img src={post.profilePicture} alt="Profile" className="w-12 h-12 rounded-full object-cover border-2 border-indigo-500" />
+                    <img src={post.profilePicture || "user.png"} alt="Profile" className="w-12 h-12 rounded-full object-cover border-2 border-indigo-500" />
                     <div>
                       <p className="text-white font-semibold">{post.username || "Unknown"}</p>
                       <p className="text-gray-400 text-xs">{new Date(post.createdAt).toLocaleString()}</p>
@@ -710,9 +710,9 @@ export const HomePage = () => {
                             const commentUser = comment.user || userMap[comment.userId] || { username: "Unknown", profilePicture: "user.png" };
                             return (
                               <div key={idx} className="flex items-center gap-2">
-                                <img src={commentUser.profilePicture} alt="Comment user" className="w-6 h-6 rounded-full" />
+                                <img src={commentUser.profilePicture} alt="Comment user" className="w-6 h-6 rounded-full cursor-pointer" onClick={() => navigate(`/userprofilesdata/${comment.userId}`)}/>
                                 <div>
-                                  <span className="font-semibold text-white">{commentUser.username}</span>{" "}
+                                  <span className="font-semibold text-white cursor-pointer" onClick={() => navigate(`/userprofilesdata/${comment.userId}`)}>{commentUser.username}</span>{" "}
                                   <span className="text-gray-300">{comment.text}</span>
                                   {comment.userId === userId && (
                                     <button onClick={() => deleteComment(post._id, comment._id)} className="text-red-400 hover:text-red-600 text-xs ml-2">

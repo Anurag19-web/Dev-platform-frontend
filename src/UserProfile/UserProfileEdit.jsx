@@ -4,8 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchUserProfile } from "../slices/userProfileSlice";
 import { updateProfile } from "../slices/updateProfileSlice";
-import { FiSettings } from "react-icons/fi";
-import { VoiceNavigator } from "../pages/VoiceNavigator";
 
 export const UserProfileEdit = () => {
   const dispatch = useDispatch();
@@ -166,13 +164,13 @@ export const UserProfileEdit = () => {
           <input
             className="mt-4 text-xl font-semibold bg-transparent border-b border-gray-500 text-center"
             placeholder="Full Name"
-            value={userEditProfile.username}
+            value={userEditProfile.username || ""}
             onChange={(e) => setuserEditProfile({ ...userEditProfile, username: e.target.value })}
           />
           <input
             className="mt-2 text-sm bg-transparent border-b border-gray-500 text-center w-60"
             placeholder="Email"
-            value={userEditProfile.email}
+            value={userEditProfile.email || ""}
             onChange={(e) => setuserEditProfile({ ...userEditProfile, email: e.target.value })}
           />
         </div>
@@ -183,7 +181,7 @@ export const UserProfileEdit = () => {
             className="w-full mt-2 bg-transparent border border-gray-600 rounded-lg p-3"
             rows="4"
             placeholder="Tell us about yourself..."
-            value={userEditProfile.bio}
+            value={userEditProfile.bio || ""}
             onChange={(e) => setuserEditProfile({ ...userEditProfile, bio: e.target.value })}
           ></textarea>
           <div className="flex gap-4 justify-center mt-4">
@@ -198,7 +196,7 @@ export const UserProfileEdit = () => {
           <h2 className="text-xl font-semibold text-indigo-400">🛠️ Skills</h2>
           <div className="flex gap-4 mt-2">
             <input
-              value={newSkill}
+              value={newSkill || ""}
               onChange={(e) => setNewSkill(e.target.value)}
               placeholder="Add a skill"
               className="p-2 rounded bg-[#2d3748] border border-gray-600 w-full"
@@ -222,7 +220,7 @@ export const UserProfileEdit = () => {
               <input
                 key={field}
                 name={field}
-                value={newExperience[field]}
+                value={newExperience[field] || ""}
                 onChange={handleExperienceChange}
                 placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
                 className="p-2 rounded bg-[#2d3748] border border-gray-600"
