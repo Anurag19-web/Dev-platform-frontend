@@ -22,6 +22,7 @@ export const CreatePost = () => {
   const [isListening, setIsListening] = useState(false);
   const [speechLang, setSpeechLang] = useState("en-US");
   const currentProfilePicture = localStorage.getItem("profilePicture");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const recognitionRef = useRef(null);
 
@@ -83,6 +84,7 @@ export const CreatePost = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (isSubmitting) return; // Prevent multiple clicks
     if (!content.trim()) {
       alert("Post content cannot be empty");
       return;
@@ -92,6 +94,8 @@ export const CreatePost = () => {
       alert("You must be logged in to create a post");
       return;
     }
+
+    setIsSubmitting(true); // Lock submit
 
     const formData = new FormData();
     formData.append("userId", userId);
@@ -121,6 +125,8 @@ export const CreatePost = () => {
     } catch (err) {
       console.error("Error creating post:", err);
       alert("Error creating post: " + err.message);
+    } finally {
+      setIsSubmitting(false); // Unlock submit
     }
   };
 
@@ -129,9 +135,8 @@ export const CreatePost = () => {
       {/* Sidebar */}
       <aside
         className={`fixed top-0 left-0 h-full w-18 bg-[#1f2937] text-white p-6 z-40
-                 transform transition-transform duration-300 ease-in-out ${
-                   sidebarOpen ? "translate-x-0" : "-translate-x-full"
-                 }`}
+                 transform transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         <div className="flex flex-col items-center py-2 space-y-6 text-white text-2xl">
           <button

@@ -109,17 +109,28 @@ export const CommonPage = () => {
           </div>
 
           {/* Centered content like title and signup button */}
-          <div className="flex-1 max-w-7xl mx-auto flex justify-between items-center px-4">
-            <h1 className="text-2xl sm:text-3xl font-bold text-white whitespace-nowrap">
+          <div className="flex-1 max-w-7xl mx-auto flex justify-between items-center px-4 flex-wrap gap-3">
+            {/* Website Title */}
+            <h1 className="text-2xl sm:text-3xl font-bold text-white whitespace-nowrap ml-11">
               🚀 Dev-Platform
             </h1>
-            <NavLink to="/signup">
-              <button className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-6 py-2 rounded-full font-semibold hover:scale-105 transition duration-300">
+
+            {/* Auth Buttons */}
+            <div className="flex flex-wrap justify-center gap-3 sm:gap-4 ml-12">
+              <button
+                onClick={() => navigate("/login")}
+                className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-6 py-2 rounded-full font-semibold hover:scale-105 transition-all duration-300 text-sm sm:text-base"
+              >
+                Login
+              </button>
+              <button
+                onClick={() => navigate("/signup")}
+                className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-6 py-2 rounded-full font-semibold hover:scale-105 transition-all duration-300 text-sm sm:text-base"
+              >
                 Sign Up
               </button>
-            </NavLink>
+            </div>
           </div>
-
         </div>
       </header>
 

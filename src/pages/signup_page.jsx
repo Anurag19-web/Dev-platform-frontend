@@ -13,7 +13,7 @@ export const SignUpPage = () => {
     email: "",
     password: "",
   });
-  
+
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const { bgTheme } = useSelector((state) => state.settings);
@@ -31,7 +31,7 @@ export const SignUpPage = () => {
     const lower = 'abcdefghijklmnopqrstuvwxyz';
 
     const getRandom = (chars, length) =>
-    Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]);
+      Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]);
 
     const upperChars = getRandom(upper, 3);
     const lowerChars = getRandom(lower, 7);
@@ -73,7 +73,7 @@ export const SignUpPage = () => {
         console.log(formData);
         navigate("/home")
         localStorage.setItem("userId", JSON.stringify(userId));
-        console.log("Saved userId:", userId);    
+        console.log("Saved userId:", userId);
       } else {
         setMessage(`❌ ${data.message || "Signup failed"}`);
       }
@@ -86,7 +86,14 @@ export const SignUpPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center  px-4 py-5 text-white font-sans" style={{ background: bgTheme}}>
+    <div className="min-h-screen flex items-center justify-center  px-4 py-5 text-white font-sans" style={{ background: bgTheme }}>
+      {/* Back Button (fixed outside card, consistent with LoginPage) */}
+      <button
+        onClick={() => navigate("/")}
+        className="fixed top-6 left-6 bg-gray-700/70 px-4 py-2 rounded-lg hover:bg-gray-600 transition shadow-md z-50"
+      >
+        ← Back
+      </button>
       <motion.div
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
@@ -175,9 +182,9 @@ export const SignUpPage = () => {
         <p className="mt-6 text-center text-sm text-gray-400">
           Already have an account?{" "}
           <NavLink to="/login">
-          <span className="text-purple-300 underline cursor-pointer hover:text-white">
-            Login
-          </span>
+            <span className="text-purple-300 underline cursor-pointer hover:text-white">
+              Login
+            </span>
           </NavLink>
         </p>
       </motion.div>

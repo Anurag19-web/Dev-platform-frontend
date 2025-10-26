@@ -22,7 +22,7 @@ const BASE_URL = "https://dev-platform-backend.onrender.com";
 export const SavedPosts = () => {
     const navigate = useNavigate();
     const { bgTheme } = useSelector((state) => state.settings);
-    const { savedPosts, setSavedPosts } = useSavedPosts();
+    const { savedPosts, setSavedPosts, removeSavedPost } = useSavedPosts();
     const [posts, setPosts] = useState([]);
     const [loadingPosts, setLoadingPosts] = useState(true);
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -85,20 +85,24 @@ export const SavedPosts = () => {
     }, []);
 
     // Function to remove a saved post
-    const removeSavedPost = async (postId) => {
-        try {
-            const res = await fetch(`${BASE_URL}/api/save/${userId}/${postId}`, {
-                method: "DELETE",
-            });
+    // const removeSavedPost = async (postId) => {
+    //     try {
+    //         const res = await fetch(`${BASE_URL}/api/save/${userId}/${postId}`, {
+    //             method: "DELETE",
+    //         });
 
-            if (!res.ok) throw new Error("Failed to remove saved post");
+    //         if (!res.ok) throw new Error("Failed to remove saved post");
 
-            await res.json();
-            setPosts((prev) => prev.filter((post) => post._id !== postId));
-        } catch (error) {
-            console.error("Error removing saved post:", error);
-        }
-    };
+    //         await res.json();
+    //         setPosts((prev) => prev.filter((post) => post._id !== postId));
+    //     } catch (error) {
+    //         console.error("Error removing saved post:", error);
+    //     }
+    // };
+
+    useEffect(() => {
+        setPosts(savedPosts);
+    }, [savedPosts]);
 
     const handleEdit = (post) => {
         setEditingPostId(post._id);
@@ -427,14 +431,16 @@ export const SavedPosts = () => {
                                                 >
                                                     <FaTrash size={20} />
                                                 </button>
-                                                <button
-                                                    onClick={() => removeSavedPost(post._id)}
-                                                    className="text-sm px-3 py-1 rounded-full bg-red-600 hover:bg-red-700 text-white shadow"
-                                                    title="Remove from Saved"
-                                                >
-                                                    ❌ Remove
-                                                </button>
                                             </>
+                                        )}
+                                        {isSaved && (
+                                            <button
+                                                onClick={() => removeSavedPost(post._id)}
+                                                className="text-sm px-3 py-1 rounded-full bg-red-600 hover:bg-red-700 text-white shadow"
+                                                title="Remove from Saved"
+                                            >
+                                                ❌ Remove
+                                            </button>
                                         )}
                                     </div>
 
@@ -706,11 +712,11 @@ export const SavedPosts = () => {
                                                         const commentUser = comment.user || userMap[comment.userId] || { username: "Unknown", profilePicture: "user.png" };
                                                         return (
                                                             <div key={idx} className="flex items-center gap-2">
-                                                                <img src={commentUser.profilePicture} alt="Comment user" className="w-6 h-6 rounded-full cursor-pointer" 
-                                                                onClick={()=>navigate(`/userprofilesdata/${comment.userId}`)}/>
+                                                                <img src={commentUser.profilePicture} alt="Comment user" className="w-6 h-6 rounded-full cursor-pointer"
+                                                                    onClick={() => navigate(`/userprofilesdata/${comment.userId}`)} />
                                                                 <div>
                                                                     <span className="font-semibold text-white cursor-pointer"
-                                                                     onClick={()=>navigate(`/userprofilesdata/${comment.userId}`)}>{commentUser.username}</span>{" "}
+                                                                        onClick={() => navigate(`/userprofilesdata/${comment.userId}`)}>{commentUser.username}</span>{" "}
                                                                     <span className="text-gray-300">{comment.text}</span>
                                                                     {comment.userId === userId && (
                                                                         <button onClick={() => deleteComment(post._id, comment._id)} className="text-red-400 hover:text-red-600 text-xs ml-2">

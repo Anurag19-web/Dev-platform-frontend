@@ -52,6 +52,13 @@ export const LoginPage = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-10 text-white font-sans" style={{ background: bgTheme }}>
+      {/* Back Button outside the card */}
+      <button
+        onClick={() => navigate("/")}
+        className="fixed top-6 left-6 bg-gray-700/70 px-4 py-2 rounded-lg hover:bg-gray-600 transition shadow-md z-50"
+      >
+        ← Back
+      </button>
       <motion.div
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
